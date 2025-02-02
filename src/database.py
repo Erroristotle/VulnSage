@@ -19,21 +19,29 @@ class Database:
             conn.close()
 
     def create_model_table(self, model_name: str) -> None:
-        """Create a new table for specific model results."""
+        """Create a new table for specific model results with enhanced fields."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
             table_name = f"vulnerabilities_{model_name}"
+            
+            strategies = ['BASELINE', 'COT', 'THINK', 'THINK_VERIFY']
+            columns = []
+            
+            for strategy in strategies:
+                for type_ in ['VULN', 'PATCH']:
+                    base_name = f"{strategy}_{type_}"
+                    columns.extend([
+                        f"{base_name} INT",
+                        f"{base_name}_CONFIDENCE REAL",
+                        f"{base_name}_SEVERITY TEXT",
+                        f"{base_name}_CVE_MATCHES TEXT",
+                        f"{base_name}_CWE_MATCHES TEXT"
+                    ])
+            
             cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS {table_name} (
                     COMMIT_HASH TEXT PRIMARY KEY,
-                    BASELINE_VULN INT,
-                    BASELINE_PATCH INT,
-                    COT_VULN INT,
-                    COT_PATCH INT,
-                    THINK_VULN INT,
-                    THINK_PATCH INT,
-                    THINK_VERIFY_VULN INT,
-                    THINK_VERIFY_PATCH INT,
+                    {','.join(columns)},
                     FOREIGN KEY (COMMIT_HASH) REFERENCES vulnerabilities(COMMIT_HASH)
                 )
             """)
