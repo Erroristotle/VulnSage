@@ -20,8 +20,8 @@ class ThinkVerifyPrompt(BasePrompt):
 * List occurrences of {cwe_id} with supporting evidence from the code.
 
 **<confidence>**
-* Assign a confidence score (0–100%) for each {cwe_id} finding.
-* If confidence is **=90%**, proceed to verification.
+* Assign a confidence score (0-100%) for each {cwe_id} finding.
+* If confidence is **>=90%**, proceed to verification.
 * If confidence is **<90%**, reanalyze the code before verification.
 
 **2. Verification (Required for High-Confidence Findings)**
@@ -49,12 +49,15 @@ class ThinkVerifyPrompt(BasePrompt):
                                    result, re.IGNORECASE | re.DOTALL)
         
         if confidence_match and assessment_match:
-            confidence = int(confidence_match.group(1))
-            assessment = assessment_match.group(1).lower()
-            
-            if confidence >= 90 and ('verified' in assessment and 'vulnerabilit' in assessment):
-                return 1
-            elif confidence >= 90:
-                return 0
+            try:
+                confidence = int(confidence_match.group(1))
+                assessment = assessment_match.group(1).lower()
+                
+                if confidence >= 90 and ('verified' in assessment and 'vulnerabilit' in assessment):
+                    return 1
+                elif confidence >= 90:
+                    return 0
+            except ValueError:
+                pass
         
         return None

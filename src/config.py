@@ -6,7 +6,7 @@ class Config:
     
     # API and Database settings
     API_URL: str = "http://localhost:11434/api/generate"
-    DATABASE_PATH: str = "database.sqlite"
+    DATABASE_PATH: str = "vulnerability_dataset/database/database.sqlite"
     OUTPUT_DIR: str = os.path.join("..", "output")
 
     # Model configurations
