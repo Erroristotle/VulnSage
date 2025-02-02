@@ -47,32 +47,37 @@ class LLMInteraction:
         prompt = self.strategies[strategy].create_prompt(code_block, cwe_id)
         result = self.query_model(prompt)
         
+        table_name = f"vulnerabilities_{self.model_name}"
+        print(f"Storing result in table: {table_name}")
         if result:
-            # Get full assessment
-            assessment = self.strategies[strategy].get_full_assessment(result)
-            
-            if assessment['is_vulnerable'] is not None:
-                # Store comprehensive results
-                with sqlite3.connect(self.db_file) as conn:
-                    cursor = conn.cursor()
-                    table_name = f"vulnerabilities_{self.model_name}"
-                    
-                    # Update base column
-                    column = f"{strategy.upper()}_{'VULN' if is_vulnerable else 'PATCH'}"
-                    cursor.execute(f"""
-                        INSERT OR REPLACE INTO {table_name}
-                        (COMMIT_HASH, {column}, 
-                         {column}_CONFIDENCE, 
-                         {column}_SEVERITY,
-                         {column}_CVE_MATCHES,
-                         {column}_CWE_MATCHES)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """, (
-                        commit_hash,
-                        assessment['is_vulnerable'],
-                        assessment['confidence'],
-                        assessment['severity'],
-                        ','.join(assessment['cve_ids']),
-                        ','.join(assessment['cwe_ids'])
-                    ))
-                    conn.commit()
+            status = self.strategies[strategy].parse_response(result)
+            if status is not None:
+                print(f"Storing result {status} for commit {commit_hash} in column {column}")
+                # Get full assessment
+                assessment = self.strategies[strategy].get_full_assessment(result)
+                
+                if assessment['is_vulnerable'] is not None:
+                    # Store comprehensive results
+                    with sqlite3.connect(self.db_file) as conn:
+                        cursor = conn.cursor()
+                        table_name = f"vulnerabilities_{self.model_name}"
+                        
+                        # Update base column
+                        column = f"{strategy.upper()}_{'VULN' if is_vulnerable else 'PATCH'}"
+                        cursor.execute(f"""
+                            INSERT OR REPLACE INTO {table_name}
+                            (COMMIT_HASH, {column}, 
+                            {column}_CONFIDENCE, 
+                            {column}_SEVERITY,
+                            {column}_CVE_MATCHES,
+                            {column}_CWE_MATCHES)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        """, (
+                            commit_hash,
+                            assessment['is_vulnerable'],
+                            assessment['confidence'],
+                            assessment['severity'],
+                            ','.join(assessment['cve_ids']),
+                            ','.join(assessment['cwe_ids'])
+                        ))
+                        conn.commit()
