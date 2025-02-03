@@ -1,11 +1,8 @@
 import sqlite3
 import os
 
-def check_database_results(model_name: str):
-    """Check the results for a specific model."""
-    # Construct database path
-    db_path = os.path.join("vulnerability_dataset", "output", f"database_{model_name}.sqlite")
-    
+def check_database_results(model_name: str, db_path: str = "vulnerability_dataset/database/database.sqlite"):
+    """Check the results for a specific model in the main database."""
     if not os.path.exists(db_path):
         print(f"Database not found at: {db_path}")
         return
@@ -16,6 +13,16 @@ def check_database_results(model_name: str):
         
         # Get table name
         table_name = f"vulnerabilities_{model_name.replace('-', '_')}"
+        
+        # Check if table exists
+        cursor.execute("""
+            SELECT name FROM sqlite_master 
+            WHERE type='table' AND name=?
+        """, (table_name,))
+        
+        if not cursor.fetchone():
+            print(f"Table {table_name} not found in database")
+            return
         
         # Print table schema
         cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
@@ -46,10 +53,21 @@ def check_database_results(model_name: str):
             
         # Show sample results
         print("\nSample results (first 5 rows):")
-        cursor.execute(f"SELECT * FROM {table_name} LIMIT 5")
+        cursor.execute(f"""
+            SELECT v.COMMIT_HASH, v.VULNERABILITY_CWE, 
+                   t.BASELINE_VULN, t.BASELINE_PATCH
+            FROM vulnerabilities v
+            LEFT JOIN {table_name} t ON v.COMMIT_HASH = t.COMMIT_HASH
+            WHERE t.BASELINE_VULN IS NOT NULL
+            LIMIT 5
+        """)
         rows = cursor.fetchall()
         for row in rows:
-            print(row)
+            print(f"Commit: {row[0]}")
+            print(f"CWE: {row[1]}")
+            print(f"Baseline Vulnerable: {row[2]}")
+            print(f"Baseline Patched: {row[3]}")
+            print("-" * 50)
 
 if __name__ == "__main__":
     model_name = "deepseek-r1-7b"  # Change this to check different models

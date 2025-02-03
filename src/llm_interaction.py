@@ -11,25 +11,40 @@ import logging
 logger = logging.getLogger(__name__)
 class LLMInteraction:
     def __init__(self, db_file: str, model_name: str):
-        self.db_file = db_file
+        self.db_file = Config.DATABASE_PATH
         self.model_name = model_name
         self.model_parameter = Config.get_model_command(model_name).split(" ")[2]  # Extract the model name from command
-        # Replace hyphens with underscores for SQL compatibility
         self.table_name = f"vulnerabilities_{model_name.replace('-', '_')}"
+        
+        # Initialize database connection
+        self.conn = sqlite3.connect(self.db_file, timeout=60.0)
+        self.conn.isolation_level = None  # autocommit mode
+        
+        # Set database pragmas for performance and reliability
+        self.conn.execute("PRAGMA journal_mode=DELETE")
+        self.conn.execute("PRAGMA synchronous=NORMAL")
+        self.conn.execute("PRAGMA busy_timeout=60000")
+        
         self.strategies = {
             "baseline": BaselinePrompt(),
             "cot": ChainOfThoughtPrompt(),
             "think": ThinkPrompt(),
             "think_verify": ThinkVerifyPrompt()
         }
+        
         # Create the table
         self.create_table()
         logger.info(f"Initialized LLM interaction with model: {model_name}, parameter: {self.model_parameter}")
     
+    def __del__(self):
+        """Cleanup database connection."""
+        if hasattr(self, 'conn') and self.conn:
+            self.conn.close()
+        
     def create_table(self):
         """Create the model-specific table if it doesn't exist."""
-        with sqlite3.connect(self.db_file) as conn:
-            cursor = conn.cursor()
+        try:
+            cursor = self.conn.cursor()
             create_table_sql = f"""
             CREATE TABLE IF NOT EXISTS {self.table_name} (
                 COMMIT_HASH TEXT PRIMARY KEY,
@@ -45,8 +60,11 @@ class LLMInteraction:
             )
             """
             cursor.execute(create_table_sql)
-            conn.commit()
+            cursor.execute("PRAGMA wal_checkpoint")  # Force a WAL checkpoint
             logger.info(f"Created or verified table: {self.table_name}")
+        except sqlite3.Error as e:
+            logger.error(f"Database error: {e}")
+            raise
         
     def query_model(self, prompt: str, max_retries: int = 3, retry_delay: int = 2) -> Optional[str]:
         """Send a single prompt to the model and get a response."""

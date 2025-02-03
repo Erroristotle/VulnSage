@@ -55,21 +55,12 @@ class VulnerabilityAnalyzer:
                 logger.error(f"Failed to install model: {message}")
                 return
 
-            # Create output directory
-            os.makedirs(Config.OUTPUT_DIR, exist_ok=True)
-
-            # Initialize database (copy if necessary)
-            db_path = os.path.join(Config.OUTPUT_DIR, f"database_{model_name}.sqlite")
-            if not os.path.exists(db_path):
-                import shutil
-                shutil.copy(Config.DATABASE_PATH, db_path)
-
             # Get vulnerability data
             vulnerability_data: List[VulnerabilityData] = self.database.get_vulnerability_data()
             logger.info(f"Found {len(vulnerability_data)} vulnerabilities to process")
 
             # Initialize LLM interaction
-            llm = LLMInteraction(db_path, model_name)
+            llm = LLMInteraction(Config.DATABASE_PATH, model_name)
 
             # Define the batch size (set in your config or default to 8)
             batch_size = getattr(Config, 'BATCH_SIZE', 8)
