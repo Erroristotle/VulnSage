@@ -66,6 +66,23 @@ class LLMInteraction:
             logger.error(f"Database error: {e}")
             raise
         
+    def verify_commit_results(self, commit_hash: str):
+        """Verify results for a specific commit."""
+        cursor = self.conn.cursor()
+        cursor.execute(f"""
+            SELECT *, 
+                CASE WHEN BASELINE_VULN IS NOT NULL THEN BASELINE_VULN END as Vuln,
+                CASE WHEN BASELINE_PATCH IS NOT NULL THEN BASELINE_PATCH END as Patch
+            FROM {self.table_name} 
+            WHERE COMMIT_HASH = ?
+        """, (commit_hash,))
+        result = cursor.fetchone()
+        
+        if result:
+            logger.info(f"Results for commit {commit_hash}:")
+            logger.info(f"BASELINE_VULN: {result[1]}")
+            logger.info(f"BASELINE_PATCH: {result[2]}")
+        
     def query_model(self, prompt: str, max_retries: int = 3, retry_delay: int = 2) -> Optional[str]:
         """Send a single prompt to the model and get a response."""
         payload = {
@@ -133,13 +150,10 @@ class LLMInteraction:
         return responses if any(r is not None for r in responses) else None
 
     def detection(self, commit_hash: str, code_block: str, cwe_id: str, 
-                  is_vulnerable: bool, strategy: str = "baseline") -> None:
+        is_vulnerable: bool, strategy: str = "baseline") -> None:
         """Run vulnerability detection for a single case."""
         prompt = self.strategies[strategy].create_prompt(code_block, cwe_id)
         result = self.query_model(prompt)
-        
-        table_name = f"vulnerabilities_{self.model_name}"
-        logger.info(f"Storing result in table: {table_name}")
         
         if result:
             status = self.strategies[strategy].parse_response(result)
@@ -147,14 +161,37 @@ class LLMInteraction:
                 column = f"{strategy.upper()}_{'VULN' if is_vulnerable else 'PATCH'}"
                 logger.info(f"Storing result {status} for commit {commit_hash} in column {column}")
                 
-                with sqlite3.connect(self.db_file) as conn:
-                    cursor = conn.cursor()
+                try:
+                    cursor = self.conn.cursor()
+                    # First try to insert
+                    try:
+                        cursor.execute(f"""
+                            INSERT INTO {self.table_name} (COMMIT_HASH, {column})
+                            VALUES (?, ?)
+                        """, (commit_hash, status))
+                    except sqlite3.IntegrityError:
+                        # If row exists, update only the specific column
+                        cursor.execute(f"""
+                            UPDATE {self.table_name}
+                            SET {column} = ?
+                            WHERE COMMIT_HASH = ?
+                        """, (status, commit_hash))
+                    
+                    logger.info(f"Successfully stored result in database")
+                    
+                    # Verify the complete row
                     cursor.execute(f"""
-                        INSERT OR REPLACE INTO {table_name}
-                        (COMMIT_HASH, {column})
-                        VALUES (?, ?)
-                    """, (commit_hash, status))
-                    conn.commit()
+                        SELECT BASELINE_VULN, BASELINE_PATCH 
+                        FROM {self.table_name} 
+                        WHERE COMMIT_HASH = ?
+                    """, (commit_hash,))
+                    vuln, patch = cursor.fetchone()
+                    logger.info(f"Current row state - VULN: {vuln}, PATCH: {patch}")
+                    
+                except sqlite3.Error as e:
+                    logger.error(f"Database error: {e}")
+                    cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{self.table_name}'")
+                    logger.error(f"Table schema: {cursor.fetchone()}")
 
     def batch_detection(self, inputs: List[Dict], strategy: str = "baseline") -> None:
         """Process a batch of vulnerability detection requests."""
@@ -201,24 +238,13 @@ class LLMInteraction:
                         VALUES (?, ?)
                     """, (commit_hash, status))
                     logger.info(f"Successfully stored result in database")
+                    
+                    # Verify results after storing
+                    self.verify_commit_results(commit_hash)
+                
                 except sqlite3.Error as e:
                     logger.error(f"Database error: {e}")
                     cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{self.table_name}'")
                     logger.error(f"Table schema: {cursor.fetchone()}")
                         
-    def check_results(self):
-        """Check the results stored in the database."""
-        with sqlite3.connect(self.db_file) as conn:
-            cursor = conn.cursor()
-            cursor.execute(f"SELECT * FROM {self.table_name} LIMIT 5")
-            rows = cursor.fetchall()
-            for row in rows:
-                logger.info(f"Result: {row}")
-            
-            # Get count of results by type
-            for strategy in ['BASELINE', 'COT', 'THINK', 'THINK_VERIFY']:
-                for type_ in ['VULN', 'PATCH']:
-                    column = f"{strategy}_{type_}"
-                    cursor.execute(f"SELECT COUNT(*) FROM {self.table_name} WHERE {column} IS NOT NULL")
-                    count = cursor.fetchone()[0]
-                    logger.info(f"{column} results: {count}")
+    
