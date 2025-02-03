@@ -163,49 +163,62 @@ class LLMInteraction:
                 
                 try:
                     cursor = self.conn.cursor()
-                    # First try to insert
-                    try:
-                        cursor.execute(f"""
-                            INSERT INTO {self.table_name} (COMMIT_HASH, {column})
-                            VALUES (?, ?)
-                        """, (commit_hash, status))
-                    except sqlite3.IntegrityError:
-                        # If row exists, update only the specific column
-                        cursor.execute(f"""
-                            UPDATE {self.table_name}
-                            SET {column} = ?
-                            WHERE COMMIT_HASH = ?
-                        """, (status, commit_hash))
                     
-                    logger.info(f"Successfully stored result in database")
-                    
-                    # Verify the complete row
+                    # Check if row exists
                     cursor.execute(f"""
                         SELECT BASELINE_VULN, BASELINE_PATCH 
                         FROM {self.table_name} 
                         WHERE COMMIT_HASH = ?
                     """, (commit_hash,))
-                    vuln, patch = cursor.fetchone()
-                    logger.info(f"Current row state - VULN: {vuln}, PATCH: {patch}")
+                    existing_row = cursor.fetchone()
+                    
+                    if existing_row:
+                        # Row exists, keep existing values and update new one
+                        vuln_val = status if is_vulnerable else existing_row[0]
+                        patch_val = status if not is_vulnerable else existing_row[1]
+                        cursor.execute(f"""
+                            UPDATE {self.table_name}
+                            SET BASELINE_VULN = ?,
+                                BASELINE_PATCH = ?
+                            WHERE COMMIT_HASH = ?
+                        """, (vuln_val, patch_val, commit_hash))
+                    else:
+                        # New row, insert with the appropriate column
+                        vuln_val = status if is_vulnerable else None
+                        patch_val = status if not is_vulnerable else None
+                        cursor.execute(f"""
+                            INSERT INTO {self.table_name}
+                            (COMMIT_HASH, BASELINE_VULN, BASELINE_PATCH)
+                            VALUES (?, ?, ?)
+                        """, (commit_hash, vuln_val, patch_val))
+                    
+                    self.conn.commit()
+                    logger.info("Successfully stored result in database")
+                    
+                    # Verify current state
+                    cursor.execute(f"""
+                        SELECT BASELINE_VULN, BASELINE_PATCH 
+                        FROM {self.table_name} 
+                        WHERE COMMIT_HASH = ?
+                    """, (commit_hash,))
+                    result = cursor.fetchone()
+                    logger.info(f"Results for commit {commit_hash}:")
+                    logger.info(f"BASELINE_VULN: {result[0]}")
+                    logger.info(f"BASELINE_PATCH: {result[1]}")
                     
                 except sqlite3.Error as e:
                     logger.error(f"Database error: {e}")
-                    cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{self.table_name}'")
-                    logger.error(f"Table schema: {cursor.fetchone()}")
 
     def batch_detection(self, inputs: List[Dict], strategy: str = "baseline") -> None:
-        """Process a batch of vulnerability detection requests."""
+        """Process a batch of vulnerability detection requests using ON CONFLICT DO UPDATE."""
         logger.info(f"Processing batch of {len(inputs)} inputs with strategy: {strategy}")
         
-        # Build prompts
+        # Build prompts and metadata list
         prompts = []
         metadata_list = []
         
         for item in inputs:
-            prompt = self.strategies[strategy].create_prompt(
-                item["code_block"], 
-                item["cwe_id"]
-            )
+            prompt = self.strategies[strategy].create_prompt(item["code_block"], item["cwe_id"])
             prompts.append(prompt)
             metadata_list.append({
                 "commit_hash": item["commit_hash"],
@@ -217,11 +230,11 @@ class LLMInteraction:
             logger.error("Batch query failed completely")
             return
 
-        # Process responses
+        # Process responses and update only the target column using ON CONFLICT DO UPDATE
         for metadata, response in zip(metadata_list, responses):
             if not response:
                 continue
-                
+
             commit_hash = metadata["commit_hash"]
             is_vulnerable = metadata["is_vulnerable"]
             status = self.strategies[strategy].parse_response(response)
@@ -233,18 +246,20 @@ class LLMInteraction:
                 try:
                     cursor = self.conn.cursor()
                     cursor.execute(f"""
-                        INSERT OR REPLACE INTO {self.table_name} 
-                        (COMMIT_HASH, {column})
+                        INSERT INTO {self.table_name} (COMMIT_HASH, {column})
                         VALUES (?, ?)
+                        ON CONFLICT(COMMIT_HASH) DO UPDATE SET {column} = excluded.{column}
                     """, (commit_hash, status))
-                    logger.info(f"Successfully stored result in database")
+                    self.conn.commit()
+                    logger.info("Successfully stored result in database")
                     
-                    # Verify results after storing
+                    # Optionally verify results after storing
                     self.verify_commit_results(commit_hash)
                 
                 except sqlite3.Error as e:
                     logger.error(f"Database error: {e}")
                     cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{self.table_name}'")
                     logger.error(f"Table schema: {cursor.fetchone()}")
+
                         
     
