@@ -193,21 +193,18 @@ class LLMInteraction:
                 column = f"{strategy.upper()}_{'VULN' if is_vulnerable else 'PATCH'}"
                 logger.info(f"Storing result {status} for commit {commit_hash} in column {column}")
                 
-                with sqlite3.connect(self.db_file) as conn:
-                    cursor = conn.cursor()
-                    try:
-                        cursor.execute(f"""
-                            INSERT OR REPLACE INTO {self.table_name} 
-                            (COMMIT_HASH, {column})
-                            VALUES (?, ?)
-                        """, (commit_hash, status))
-                        conn.commit()
-                        logger.info(f"Successfully stored result in database")
-                    except sqlite3.Error as e:
-                        logger.error(f"Database error: {e}")
-                        # Print the table schema for debugging
-                        cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{self.table_name}'")
-                        logger.error(f"Table schema: {cursor.fetchone()}")
+                try:
+                    cursor = self.conn.cursor()
+                    cursor.execute(f"""
+                        INSERT OR REPLACE INTO {self.table_name} 
+                        (COMMIT_HASH, {column})
+                        VALUES (?, ?)
+                    """, (commit_hash, status))
+                    logger.info(f"Successfully stored result in database")
+                except sqlite3.Error as e:
+                    logger.error(f"Database error: {e}")
+                    cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{self.table_name}'")
+                    logger.error(f"Table schema: {cursor.fetchone()}")
                         
     def check_results(self):
         """Check the results stored in the database."""
