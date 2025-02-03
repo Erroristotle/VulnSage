@@ -2,7 +2,6 @@ import os
 import logging
 import signal
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List
 from src.config import Config
 from src.database import Database
@@ -22,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class VulnerabilityAnalyzer:
-    """Main class for running vulnerability analysis."""
+    """Main class for running vulnerability analysis using batched LLM calls."""
     
     def __init__(self):
         self.model_manager = ModelManager()
@@ -46,34 +45,8 @@ class VulnerabilityAnalyzer:
         self.model_manager.cleanup_model()
         logger.info("Cleanup completed")
 
-    def process_vulnerability(self, data: VulnerabilityData, llm: LLMInteraction) -> None:
-        """Process a single vulnerability."""
-        try:
-            # Process vulnerable code
-            if data.vulnerable_code and self.running:
-                logger.info(f"Processing vulnerable code for commit {data.commit_hash}")
-                llm.detection(
-                    commit_hash=data.commit_hash,
-                    code_block=data.vulnerable_code,
-                    cwe_id=data.cwe_id,
-                    is_vulnerable=True
-                )
-
-            # Process patched code
-            if data.patched_code and self.running:
-                logger.info(f"Processing patched code for commit {data.commit_hash}")
-                llm.detection(
-                    commit_hash=data.commit_hash,
-                    code_block=data.patched_code,
-                    cwe_id=data.cwe_id,
-                    is_vulnerable=False
-                )
-
-        except Exception as e:
-            logger.error(f"Error processing commit {data.commit_hash}: {e}")
-
     def run_analysis(self, model_name: str) -> None:
-        """Run the vulnerability analysis for a specific model."""
+        """Run the vulnerability analysis for a specific model using batching."""
         try:
             # Install model
             logger.info(f"Installing model: {model_name}")
@@ -85,35 +58,55 @@ class VulnerabilityAnalyzer:
             # Create output directory
             os.makedirs(Config.OUTPUT_DIR, exist_ok=True)
 
-            # Initialize database
+            # Initialize database (copy if necessary)
             db_path = os.path.join(Config.OUTPUT_DIR, f"database_{model_name}.sqlite")
             if not os.path.exists(db_path):
                 import shutil
                 shutil.copy(Config.DATABASE_PATH, db_path)
 
             # Get vulnerability data
-            vulnerability_data = self.database.get_vulnerability_data()
+            vulnerability_data: List[VulnerabilityData] = self.database.get_vulnerability_data()
             logger.info(f"Found {len(vulnerability_data)} vulnerabilities to process")
 
             # Initialize LLM interaction
             llm = LLMInteraction(db_path, model_name)
 
-            # Process vulnerabilities using thread pool
-            with ThreadPoolExecutor(max_workers=Config.MAX_WORKERS) as executor:
-                futures = []
-                for data in vulnerability_data:
+            # Define the batch size (set in your config or default to 8)
+            batch_size = getattr(Config, 'BATCH_SIZE', 8)
+            
+            # Process vulnerabilities in batches
+            for i in range(0, len(vulnerability_data), batch_size):
+                batch = vulnerability_data[i:i+batch_size]
+                vulnerable_inputs = []
+                patched_inputs = []
+                
+                for data in batch:
                     if not self.running:
                         break
-                    futures.append(
-                        executor.submit(self.process_vulnerability, data, llm)
-                    )
-
-                # Wait for completion
-                for future in as_completed(futures):
-                    try:
-                        future.result()
-                    except Exception as e:
-                        logger.error(f"Error in future: {e}")
+                    if data.vulnerable_code:
+                        vulnerable_inputs.append({
+                            'commit_hash': data.commit_hash,
+                            'code_block': data.vulnerable_code,
+                            'cwe_id': data.cwe_id,
+                            'is_vulnerable': True
+                        })
+                    if data.patched_code:
+                        patched_inputs.append({
+                            'commit_hash': data.commit_hash,
+                            'code_block': data.patched_code,
+                            'cwe_id': data.cwe_id,
+                            'is_vulnerable': False
+                        })
+                
+                # Process the batch for vulnerable code if available
+                if vulnerable_inputs:
+                    logger.info(f"Processing vulnerable batch for commits: {[d['commit_hash'] for d in vulnerable_inputs]}")
+                    llm.batch_detection(vulnerable_inputs)
+                
+                # Process the batch for patched code if available
+                if patched_inputs:
+                    logger.info(f"Processing patched batch for commits: {[d['commit_hash'] for d in patched_inputs]}")
+                    llm.batch_detection(patched_inputs)
 
         except Exception as e:
             logger.error(f"Error in analysis: {e}")
