@@ -10,8 +10,8 @@ class ModelManager:
     """Manages model installation and cleanup."""
     
     def __init__(self):
-        self.current_model: Optional[str] = None
-        self.model_parameter: Optional[str] = None
+        self.current_model = None
+        self.model_parameter = None
 
     def install_model(self, model_name: str) -> Tuple[bool, str]:
         command = Config.get_model_command(model_name)
@@ -34,13 +34,13 @@ class ModelManager:
         except subprocess.CalledProcessError as e:
             return False, str(e)
 
-    def cleanup_model(self):
-        if self.current_model:
-            try:
-                subprocess.run(['ollama', 'stop'], check=True)
-                logger.info(f"Model {self.current_model} stopped")
-            except Exception as e:
-                logger.error(f"Error stopping model: {e}")
+    def cleanup_model(self):  # Changed to not require model_name
+        """Stop and cleanup the model."""
+        try:
+            subprocess.run(['ollama', 'stop'])  # Just stop Ollama
+            logger.info("Model stopped successfully")
+        except Exception as e:
+            logger.error(f"Error stopping model: {e}")
 
     def get_model_parameter(self) -> Optional[str]:
         """Get the current model parameter for API calls."""
