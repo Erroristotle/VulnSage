@@ -59,51 +59,72 @@ class VulnerabilityAnalyzer:
             vulnerability_data: List[VulnerabilityData] = self.database.get_vulnerability_data()
             logger.info(f"Found {len(vulnerability_data)} vulnerabilities to process")
 
-            # Initialize LLM interaction
+            # Get columns to process
             llm = LLMInteraction(Config.DATABASE_PATH, model_name)
-
-            # Define the batch size (set in your config or default to 8)
-            batch_size = getattr(Config, 'BATCH_SIZE', 8)
+            strategies = ["baseline", "cot", "think", "think_verify"]
             
-            # Process vulnerabilities in batches
-            for i in range(0, len(vulnerability_data), batch_size):
-                batch = vulnerability_data[i:i+batch_size]
-                vulnerable_inputs = []
-                patched_inputs = []
+            # Check which strategies need processing
+            for strategy in strategies:
+                logger.info(f"Checking {strategy} strategy completion status...")
                 
-                for data in batch:
-                    if not self.running:
-                        break
-                    if data.vulnerable_code:
-                        vulnerable_inputs.append({
-                            'commit_hash': data.commit_hash,
-                            'code_block': data.vulnerable_code,
-                            'cwe_id': data.cwe_id,
-                            'is_vulnerable': True
-                        })
-                    if data.patched_code:
-                        patched_inputs.append({
-                            'commit_hash': data.commit_hash,
-                            'code_block': data.patched_code,
-                            'cwe_id': data.cwe_id,
-                            'is_vulnerable': False
-                        })
+                # Check if strategy columns are already populated
+                cursor = llm.conn.cursor()
+                cursor.execute(f"""
+                    SELECT COUNT(*) 
+                    FROM {llm.table_name} 
+                    WHERE {strategy.upper()}_VULN IS NOT NULL 
+                    AND {strategy.upper()}_PATCH IS NOT NULL
+                """)
+                count = cursor.fetchone()[0]
                 
-                # Process the batch for vulnerable code if available
-                if vulnerable_inputs:
-                    logger.info(f"Processing vulnerable batch for commits: {[d['commit_hash'] for d in vulnerable_inputs]}")
-                    llm.batch_detection(vulnerable_inputs)
+                if count > 0:
+                    logger.info(f"Skipping {strategy} - already processed")
+                    continue
+                    
+                logger.info(f"Starting {strategy} strategy")
                 
-                # Process the batch for patched code if available
-                if patched_inputs:
-                    logger.info(f"Processing patched batch for commits: {[d['commit_hash'] for d in patched_inputs]}")
-                    llm.batch_detection(patched_inputs)
+                # Process batches for this strategy
+                batch_size = getattr(Config, 'BATCH_SIZE', 8)
+                for i in range(0, len(vulnerability_data), batch_size):
+                    batch = vulnerability_data[i:i+batch_size]
+                    vulnerable_inputs = []
+                    patched_inputs = []
+                    
+                    for data in batch:
+                        if not self.running:
+                            break
+                        if data.vulnerable_code:
+                            vulnerable_inputs.append({
+                                'commit_hash': data.commit_hash,
+                                'code_block': data.vulnerable_code,
+                                'cwe_id': data.cwe_id,
+                                'is_vulnerable': True
+                            })
+                        if data.patched_code:
+                            patched_inputs.append({
+                                'commit_hash': data.commit_hash,
+                                'code_block': data.patched_code,
+                                'cwe_id': data.cwe_id,
+                                'is_vulnerable': False
+                            })
+                    
+                    if vulnerable_inputs:
+                        logger.info(f"Processing vulnerable batch for commits with {strategy}")
+                        llm.batch_detection(vulnerable_inputs, strategy)
+                    
+                    if patched_inputs:
+                        logger.info(f"Processing patched batch for commits with {strategy}")
+                        llm.batch_detection(patched_inputs, strategy)
+
+                logger.info(f"Completed {strategy} strategy")
 
         except Exception as e:
             logger.error(f"Error in analysis: {e}")
         finally:
-            self.cleanup()
-
+            logger.info("All strategies completed. Performing cleanup...")
+            self.model_manager.cleanup_model()  # No argument needed
+            logger.info("Cleanup completed")
+        
 # Initialize analyzer
 analyzer = VulnerabilityAnalyzer()
 
