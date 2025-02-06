@@ -11,18 +11,18 @@ class Config:
 
     # Model configurations
     MODELS: Dict[str, str] = {
-        "deepseek-v2-16b": "ollama run deepseek-v2",
-        "llama3.1-8b": "ollama run llama3.1",
-        "llama3.1-70b": "ollama run llama3.1:70b",
-        "gemma2-9b": "ollama run gemma2:9b",
-        "gemma2-27b": "ollama run gemma2:27b",
-        "deepseek-coder-16b": "ollama run deepseek-coder-v2",
-        "qwen2.5-coder-7b": "ollama run qwen2.5-coder",
-        "qwen2.5-coder-32b": "ollama run qwen2.5-coder:32b",
-        "codellama-7b": "ollama run codellama:7b",
-        "codellama-34b": "ollama run codellama:34b",
-        "deepseek-r1-7b": "ollama run deepseek-r1",
-        "deepseek-r1-32b": "ollama run deepseek-r1:32b"
+        "deepseek-v2-16b": "ollama run custom-deepseek-v2",
+        "llama3.1-8b": "ollama run custom-llama3.1",
+        "llama3.1-70b": "ollama run custom-llama3.1-70b",
+        "gemma2-9b": "ollama run custom-gemma2-9b",
+        "gemma2-27b": "ollama run custom-gemma2-27b",
+        "deepseek-coder-16b": "ollama run custom-deepseek-coder-v2",
+        "qwen2.5-coder-7b": "ollama run custom-qwen2.5-coder",
+        "qwen2.5-coder-32b": "ollama run custom-qwen2.5-coder-32b",
+        "codellama-7b": "ollama run custom-codellama-7b",
+        "codellama-34b": "ollama run custom-codellama-34b",
+        "deepseek-r1-7b": "ollama run custom-deepseek-r1-7b",
+        "deepseek-r1-32b": "ollama run custom-deepseek-r1-32b"
     }
 
     # Processing settings
