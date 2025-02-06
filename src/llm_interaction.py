@@ -158,8 +158,9 @@ class LLMInteraction:
         responses = []
         
         for i, prompt in enumerate(prompts):
+
             payload = {
-                "model": self.model_parameter,  # Use the extracted model parameter
+                "model": self.model_parameter,
                 "prompt": prompt
             }
             
@@ -325,4 +326,4 @@ class LLMInteraction:
                     cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{self.table_name}'")
                     logger.error(f"Table schema: {cursor.fetchone()}")
                         
-    
+        
