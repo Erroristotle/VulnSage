@@ -161,7 +161,8 @@ class LLMInteraction:
 
             payload = {
                 "model": self.model_parameter,
-                "prompt": prompt
+                "prompt": prompt,
+                "temperature": 0.7
             }
             
             logger.info(f"Processing prompt {i+1}/{len(prompts)}")
