@@ -34,35 +34,16 @@ class ChainOfThoughtPrompt(BasePrompt):
     
    def parse_response(self, result: str) -> Optional[int]:
       """
-      Parse the chain-of-thought response to determine whether the vulnerability is present.
+      Parse the LLM's response for the chain-of-thought prompt.
       
-      The method follows these steps:
-         1. Normalize the response text.
-         2. Attempt to apply the core parsing logic from BasePrompt.
-         3. If the core logic is inconclusive, explicitly search for a "final decision" section.
-         4. Fall back on additional checks for common concluding phrases.
+      Instead of attempting to extract the final decision with regex, this method simply delegates
+      the decision extraction to the deepseek-r1-7b model. In our base class, the method parse_vulnerability()
+      calls llm_final_decision() which sends the entire response to deepseek-r1-7b with a prompt asking
+      for a final single-digit answer.
       
       Returns:
-         1 if the vulnerability is indicated,
+         1 if the vulnerability is detected,
          0 if it is not,
-         or None if the response remains inconclusive.
+         or None if the decision is ambiguous.
       """
-      normalized = self._normalize_text(result)
-      
-      # Step 1: Try the core vulnerability parsing logic from BasePrompt.
-      base_result = self.parse_vulnerability(normalized)
-      if base_result is not None:
-         return base_result
-      
-      # Step 2: Attempt to extract a final decision from the chain-of-thought text.
-      final_decision = re.search(r'(?:final decision|conclusion)\s*:?\s*(yes|no)', normalized)
-      if final_decision:
-         return 1 if final_decision.group(1) == 'yes' else 0
-      
-      # Step 3: Fallback: Check for any concluding phrases that suggest a decision.
-      if re.search(r'vulnerability.*?(?:present|found|exists)', normalized):
-         return 1
-      if re.search(r'(?:no vulnerability|not present|secure|safe)', normalized):
-         return 0
-      
-      return None
+      return self.parse_vulnerability(result)

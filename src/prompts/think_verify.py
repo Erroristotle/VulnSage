@@ -44,61 +44,14 @@ class ThinkVerifyPrompt(BasePrompt):
     
     def parse_response(self, result: str) -> Optional[int]:
         """
-        Parse the Think & Verify prompt response to determine whether the vulnerability is present.
+        Parse the LLM's response for the Think & Verify prompt.
         
-        The parsing strategy is as follows:
-          1. Normalize the response text.
-          2. Attempt the core vulnerability detection using the inherited logic.
-          3. Look explicitly for a final decision in the <assessment> section.
-          4. If not clearly labeled, fallback to checking the <verification> section and then overall text.
-          5. Optionally, use any provided confidence scores as additional indicators.
+        This method delegates the extraction of the final decision to the deepseek‑r1‑7b model,
+        by calling the base class's parse_vulnerability() (which calls llm_final_decision()).
         
         Returns:
             1 if the vulnerability is confirmed,
             0 if it is not,
-            or None if the response is inconclusive.
+            or None if the decision is ambiguous.
         """
-        normalized = self._normalize_text(result)
-        
-        # Step 1: Use the core parsing logic from BasePrompt.
-        base_result = self.parse_vulnerability(normalized)
-        if base_result is not None:
-            return base_result
-        
-        # Step 2: Look for an <assessment> section with a clear decision.
-        assessment_match = re.search(r'<assessment>\s*(.*)', normalized, re.DOTALL)
-        if assessment_match:
-            assessment_text = assessment_match.group(1)
-            if re.search(r'\b(yes|vulnerable|present)\b', assessment_text):
-                return 1
-            if re.search(r'\b(no|not present|secure|safe)\b', assessment_text):
-                return 0
-        
-        # Step 3: If <assessment> is not found, check the <verification> section.
-        verification_match = re.search(r'<verification>\s*(.*)', normalized, re.DOTALL)
-        if verification_match:
-            verification_text = verification_match.group(1)
-            if re.search(r'\b(confirmed|verified)\b', verification_text):
-                return 1
-            if re.search(r'\b(no vulnerability|not found|clean)\b', verification_text):
-                return 0
-        
-        # Step 4: Fallback: scan the overall text for concluding phrases.
-        if re.search(r'(?:vulnerability present|found vulnerability|exists)', normalized):
-            return 1
-        if re.search(r'(?:no vulnerability|not present|secure|safe)', normalized):
-            return 0
-        
-        # Step 5: Optionally, check for a confidence score indicator.
-        confidence_match = re.search(r'confidence (?:score|level|rating).*?(\d+)%', normalized)
-        if confidence_match:
-            confidence = int(confidence_match.group(1))
-            if confidence >= 90:
-                # If high confidence and text includes verification keywords, assume vulnerability is confirmed.
-                if re.search(r'verified', normalized):
-                    return 1
-                if re.search(r'no vulnerability', normalized):
-                    return 0
-        
-        # If no clear decision is extracted, return None.
-        return None
+        return self.parse_vulnerability(result)

@@ -38,39 +38,13 @@ class ThinkPrompt(BasePrompt):
     
     def parse_response(self, result: str) -> Optional[int]:
         """
-        Parse the Think prompt response to determine if the vulnerability is present.
+        Parse the LLM's response for the Think prompt.
         
-        The parsing process follows these steps:
-          1. Normalize the response text using inherited normalization.
-          2. Apply the core vulnerability parsing logic from BasePrompt.
-          3. Look explicitly for the <vulnerability_assessment> section and extract a decision.
-          4. As a fallback, scan the overall response for concluding phrases.
-        
-        Returns:
-            1 if the vulnerability is detected,
-            0 if it is not,
-            or None if the response is inconclusive.
+        This method delegates the extraction of the final decision to the deepseek‑r1‑7b model.
+        It calls the base class's parse_vulnerability() (which in turn calls llm_final_decision())
+        to obtain a final single-digit answer:
+          - 1 if the vulnerability is present,
+          - 0 if it is not,
+          - None if ambiguous.
         """
-        normalized = self._normalize_text(result)
-        
-        # Step 1: Try using the core parsing logic from BasePrompt.
-        base_result = self.parse_vulnerability(normalized)
-        if base_result is not None:
-            return base_result
-        
-        # Step 2: Look for a dedicated vulnerability assessment section.
-        assessment_match = re.search(r'<vulnerability_assessment>\s*(.*)', normalized, re.DOTALL)
-        if assessment_match:
-            assessment_text = assessment_match.group(1)
-            if re.search(r'\byes\b', assessment_text):
-                return 1
-            if re.search(r'\bno\b', assessment_text):
-                return 0
-        
-        # Step 3: Fallback - Check for concluding phrases in the overall text.
-        if re.search(r'(?:vulnerability present|found vulnerability|vulnerable)', normalized):
-            return 1
-        if re.search(r'(?:no vulnerability|not present|secure|safe)', normalized):
-            return 0
-        
-        return None
+        return self.parse_vulnerability(result)
