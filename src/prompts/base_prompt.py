@@ -4,8 +4,9 @@ import logging
 import requests
 from typing import Optional, Dict, Any
 
-# Import configuration settings.
-from config import Config
+# Import configuration settings if needed.
+# (If you want to avoid using the config file for the model command, you can comment out the Config import.)
+# from src.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +24,10 @@ class BasePrompt(ABC):
         """
         Initialize the prompt with a model command.
         
-        If no model_command is provided, the default from Config (for the current benchmarked model) is used.
+        If no model_command is provided, it defaults to using the deepseek-r1-7b model.
         """
         if model_command is None:
-            # Assumes that Config.DEFAULT_MODEL is defined in your configuration.
-            self.model_command = Config.get_model_command(Config.DEFAULT_MODEL)
+            self.model_command = "ollama run deepseek-r1-7b"
         else:
             self.model_command = model_command
 
@@ -89,12 +89,12 @@ class BasePrompt(ABC):
             "Text:\n" + text
         )
         payload = {
-            "model": self.model_command,  # Use the benchmarking model command
+            "model": self.model_command,
             "prompt": prompt,
             "temperature": 0.0
         }
         try:
-            response = requests.post(Config.API_URL, json=payload)
+            response = requests.post("http://localhost:11434/api/generate", json=payload)
             if response.status_code == 200:
                 response_lines = response.content.decode('utf-8').splitlines()
                 full_response = ''.join([json.loads(line)["response"] for line in response_lines if line])
@@ -104,7 +104,6 @@ class BasePrompt(ABC):
                     return 1
                 if decision_str == "0":
                     return 0
-                # Fallback logic if one digit is clearly present:
                 if "1" in decision_str and "0" not in decision_str:
                     return 1
                 if "0" in decision_str and "1" not in decision_str:

@@ -29,8 +29,8 @@ class Config:
     MAX_RETRIES: int = 3
     RETRY_DELAY: int = 2
     MAX_WORKERS: int = os.cpu_count()
-    BATCH_SIZE: int = 8
-    SUB_BATCH_SIZE: int = 4  # For breaking down large batches
+    BATCH_SIZE: int = 4
+    SUB_BATCH_SIZE: int = 2  # For breaking down large batches
 
     # State management
     STATE_FILE: str = "process_state.json"
