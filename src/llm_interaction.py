@@ -39,6 +39,7 @@ class LLMInteraction:
         self.create_table()
         logger.info(f"Table {self.table_name} is ready with all required columns")
         logger.info(f"Initialized LLM interaction with model: {model_name}, parameter: {self.model_parameter}")
+    
     def __del__(self):
         """Cleanup database connection."""
         if hasattr(self, 'conn') and self.conn:
@@ -333,4 +334,56 @@ class LLMInteraction:
                     cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{self.table_name}'")
                     logger.error(f"Table schema: {cursor.fetchone()}")
                         
+    def get_unprocessed_strategies(self) -> List[str]:
+        """Return a list of strategies that have empty columns."""
+        cursor = self.conn.cursor()
+        unprocessed = []
         
+        # Check baseline
+        cursor.execute(f"""
+            SELECT COUNT(*) 
+            FROM {self.table_name} 
+            WHERE BASELINE_VULN IS NOT NULL 
+            AND BASELINE_PATCH IS NOT NULL
+        """)
+        if cursor.fetchone()[0] == 0:
+            unprocessed.append("baseline")
+        
+        # Check COT
+        cursor.execute(f"""
+            SELECT COUNT(*) 
+            FROM {self.table_name} 
+            WHERE COT_VULN IS NOT NULL 
+            AND COT_PATCH IS NOT NULL 
+            AND COT_REASONING_VULN IS NOT NULL 
+            AND COT_REASONING_PATCH IS NOT NULL
+        """)
+        if cursor.fetchone()[0] == 0:
+            unprocessed.append("cot")
+        
+        # Check think
+        cursor.execute(f"""
+            SELECT COUNT(*) 
+            FROM {self.table_name} 
+            WHERE THINK_VULN IS NOT NULL 
+            AND THINK_PATCH IS NOT NULL 
+            AND THINK_REASONING_VULN IS NOT NULL 
+            AND THINK_REASONING_PATCH IS NOT NULL
+        """)
+        if cursor.fetchone()[0] == 0:
+            unprocessed.append("think")
+        
+        # Check think_verify
+        cursor.execute(f"""
+            SELECT COUNT(*) 
+            FROM {self.table_name} 
+            WHERE THINK_VERIFY_VULN IS NOT NULL 
+            AND THINK_VERIFY_PATCH IS NOT NULL 
+            AND THINK_VERIFY_REASONING_VULN IS NOT NULL 
+            AND THINK_VERIFY_REASONING_PATCH IS NOT NULL
+        """)
+        if cursor.fetchone()[0] == 0:
+            unprocessed.append("think_verify")
+        
+        logger.info(f"Found unprocessed strategies: {unprocessed}")
+        return unprocessed

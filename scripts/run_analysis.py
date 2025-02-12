@@ -45,7 +45,7 @@ class VulnerabilityAnalyzer:
     #     self.model_manager.cleanup_model()
     #     logger.info("Cleanup completed")
 
-    def run_analysis(self, model_name: str) -> None:
+    # def run_analysis(self, model_name: str) -> None:
         """Run the vulnerability analysis for a specific model using batching."""
         try:
             # Install model
@@ -125,6 +125,74 @@ class VulnerabilityAnalyzer:
             # self.model_manager.cleanup_model()  # No argument needed
             # logger.info("Cleanup completed")
         
+    def run_analysis(self, model_name: str) -> None:
+        """Run the vulnerability analysis for a specific model using batching."""
+        try:
+            # Install model
+            logger.info(f"Installing model: {model_name}")
+            success, message = self.model_manager.install_model(model_name)
+            if not success:
+                logger.error(f"Failed to install model: {message}")
+                return
+
+            # Get vulnerability data
+            vulnerability_data: List[VulnerabilityData] = self.database.get_vulnerability_data()
+            logger.info(f"Found {len(vulnerability_data)} vulnerabilities to process")
+
+            # Initialize LLM interaction
+            llm = LLMInteraction(Config.DATABASE_PATH, model_name)
+            
+            # Get unprocessed strategies
+            strategies = llm.get_unprocessed_strategies()
+            if not strategies:
+                logger.info("All strategies have been processed!")
+                return
+                
+            logger.info(f"Will process these strategies: {strategies}")
+            
+            # Process each strategy that needs work
+            for strategy in strategies:
+                logger.info(f"Starting {strategy} strategy")
+                
+                # Process batches for this strategy
+                batch_size = getattr(Config, 'BATCH_SIZE', 8)
+                for i in range(0, len(vulnerability_data), batch_size):
+                    if not self.running:
+                        break
+                        
+                    batch = vulnerability_data[i:i+batch_size]
+                    vulnerable_inputs = []
+                    patched_inputs = []
+                    
+                    for data in batch:
+                        if data.vulnerable_code:
+                            vulnerable_inputs.append({
+                                'commit_hash': data.commit_hash,
+                                'code_block': data.vulnerable_code,
+                                'cwe_id': data.cwe_id,
+                                'is_vulnerable': True
+                            })
+                        if data.patched_code:
+                            patched_inputs.append({
+                                'commit_hash': data.commit_hash,
+                                'code_block': data.patched_code,
+                                'cwe_id': data.cwe_id,
+                                'is_vulnerable': False
+                            })
+                    
+                    if vulnerable_inputs:
+                        logger.info(f"Processing vulnerable batch for {strategy}")
+                        llm.batch_detection(vulnerable_inputs, strategy)
+                    
+                    if patched_inputs:
+                        logger.info(f"Processing patched batch for {strategy}")
+                        llm.batch_detection(patched_inputs, strategy)
+                        
+                logger.info(f"Completed {strategy} strategy")
+
+        except Exception as e:
+            logger.error(f"Error in analysis: {e}")
+
 # Initialize analyzer
 analyzer = VulnerabilityAnalyzer()
 

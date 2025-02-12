@@ -70,43 +70,78 @@ class BasePrompt(ABC):
 
     def llm_final_decision(self, text: str) -> Optional[int]:
         """
-        Use the benchmarking LLM (via the provided model command) to extract a final decision.
-        
-        The prompt instructs the LLM to provide a final decision as a single digit:
-          - "1" if the vulnerability is present,
-          - "0" if it is not.
+        Use deepseek-r1 to extract the final decision, with improved parsing to handle
+        cases where the LLM provides explanation with its decision.
         """
         prompt = (
-            "You are a security expert. Based on the following text, provide a final decision "
-            "as a single digit: 1 if the vulnerability is present, and 0 if it is not present.\n\n"
-            "Text:\n" + text
+            "You are a security expert analyzing a detailed vulnerability assessment. "
+            "Based on the following analysis, determine if a vulnerability is present.\n\n"
+            "VERY IMPORTANT: Your response must start with a single digit on its own line:\n"
+            "1 - if a vulnerability is present\n"
+            "0 - if no vulnerability is present\n"
+            "2 - if the analysis is ambiguous\n\n"
+            "After the digit, you may provide your reasoning on new lines.\n\n"
+            "Analysis text:\n" + text + "\n\n"
+            "Remember: First line must be ONLY the digit (0, 1, or 2)."
         )
+        
         payload = {
-            "model": self.model_command,
+            "model": "deepseek-r1",
             "prompt": prompt,
             "temperature": 0.0,
             "stream": False
         }
+        
         try:
             response = requests.post("http://localhost:11434/api/generate", json=payload)
             if response.status_code == 200:
                 response_lines = response.content.decode('utf-8').splitlines()
                 full_response = ''.join([json.loads(line)["response"] for line in response_lines if line])
-                decision_str = full_response.strip()
-                logger.debug("LLM final decision response: '%s'", decision_str)
-                if decision_str == "1":
+                
+                # Split into lines and get first non-empty line
+                lines = [line.strip() for line in full_response.split('\n')]
+                first_line = next((line for line in lines if line), '')
+                
+                # Extract first digit found in the first line
+                import re
+                digit_match = re.search(r'^[012]$', first_line)
+                
+                if digit_match:
+                    decision = int(digit_match.group(0))
+                    logger.debug(f"Extracted decision {decision} from first line: '{first_line}'")
+                    return decision
+                
+                # If no clean digit found in first line, try to infer from full text
+                logger.warning(f"No clear digit in first line. Analyzing full response: {full_response[:200]}...")
+                
+                # Look for clear yes/no language in the full response
+                lower_response = full_response.lower()
+                if ("vulnerability exists" in lower_response or 
+                    "is vulnerable" in lower_response or 
+                    "vulnerability is present" in lower_response):
                     return 1
-                if decision_str == "0":
+                if ("no vulnerability" in lower_response or 
+                    "not vulnerable" in lower_response or 
+                    "vulnerability is not present" in lower_response):
                     return 0
-                if "1" in decision_str and "0" not in decision_str:
-                    return 1
-                if "0" in decision_str and "1" not in decision_str:
-                    return 0
+                    
+                # If still no clear decision, look for the first lone digit in the text
+                digit_match = re.search(r'\b[012]\b', full_response)
+                if digit_match:
+                    decision = int(digit_match.group(0))
+                    logger.debug(f"Found decision {decision} in full text")
+                    return decision
+                
+                logger.warning("Could not determine clear decision, marking as ambiguous")
+                return Config.AMBIGUOUS_DECISION_VALUE
+                
             else:
-                logger.error("LLM API returned status code: %s", response.status_code)
+                logger.error(f"LLM API returned status code: {response.status_code}")
+                return Config.AMBIGUOUS_DECISION_VALUE
+                
         except Exception as e:
-            logger.error("Error calling LLM API for final decision: %s", e)
-        return Config.AMBIGUOUS_DECISION_VALUE
+            logger.error(f"Error in llm_final_decision: {e}")
+            return Config.AMBIGUOUS_DECISION_VALUE
 
     def parse_vulnerability(self, result: str) -> Optional[int]:
         """
