@@ -70,15 +70,19 @@ class BasePrompt(ABC):
 
     def llm_final_decision(self, text: str) -> Optional[int]:
         """
-        Use the benchmarking LLM (via the provided model command) to extract a final decision.
+        Use the benchmarking LLM to extract a final decision.
         
         The prompt instructs the LLM to provide a final decision as a single digit:
-          - "1" if the vulnerability is present,
-          - "0" if it is not.
+        - "1" if the vulnerability is present
+        - "0" if it is not present
+        - "2" if the analysis is ambiguous
         """
         prompt = (
             "You are a security expert. Based on the following text, provide a final decision "
-            "as a single digit: 1 if the vulnerability is present, and 0 if it is not present.\n\n"
+            "as a single digit:\n"
+            "1 - if the vulnerability is present\n"
+            "0 - if it is not present\n"
+            "2 - if the analysis is ambiguous or unclear\n\n"
             "Text:\n" + text
         )
         payload = {
@@ -94,14 +98,10 @@ class BasePrompt(ABC):
                 full_response = ''.join([json.loads(line)["response"] for line in response_lines if line])
                 decision_str = full_response.strip()
                 logger.debug("LLM final decision response: '%s'", decision_str)
-                if decision_str == "1":
-                    return 1
-                if decision_str == "0":
-                    return 0
-                if "1" in decision_str and "0" not in decision_str:
-                    return 1
-                if "0" in decision_str and "1" not in decision_str:
-                    return 0
+                if decision_str in ["0", "1", "2"]:
+                    return int(decision_str)
+                # If no clear decision, return ambiguous
+                return Config.AMBIGUOUS_DECISION_VALUE
             else:
                 logger.error("LLM API returned status code: %s", response.status_code)
         except Exception as e:

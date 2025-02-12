@@ -27,8 +27,8 @@ class ChainOfThoughtPrompt(BasePrompt):
          f"   - Assess the potential for exploitation by an attacker and the resulting impact.\n\n"
          f"4. **Final Decision:**\n"
          f"   - Clearly state your conclusion by beginning your answer with 'Final Decision:' and then either 'YES' or 'NO'.\n\n"
-         f"5. **Recommendations (Optional):**\n"
-         f"   - Optionally, provide suggestions for security improvements.\n\n"
+         f"5. **Recommendations:**\n"
+         f"   - provide suggestions for security improvements.\n\n"
          f"**Code to analyze:**\n{code_block}"
       )
     
