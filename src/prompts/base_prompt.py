@@ -86,7 +86,7 @@ class BasePrompt(ABC):
         )
         
         payload = {
-            "model": "deepseek-r1",
+            "model": self.model_command,
             "prompt": prompt,
             "temperature": 0.0,
             "stream": False
