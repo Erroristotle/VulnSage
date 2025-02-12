@@ -3,10 +3,7 @@ import json
 import logging
 import requests
 from typing import Optional, Dict, Any
-
-# Import configuration settings if needed.
-# (If you want to avoid using the config file for the model command, you can comment out the Config import.)
-# from src.config import Config
+from ..config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -15,27 +12,23 @@ class BasePrompt(ABC):
     Base class for all prompt types with common parsing utilities.
     
     This version delegates the extraction of the final decision to the benchmarking LLM 
-    (the same model used throughout the system) rather than relying on regex.
+    (using the provided model command) rather than relying on regex.
     The final decision is obtained by sending the complete response to the LLM 
-    (using a provided model command) with a prompt that asks for a single-digit answer.
+    with a prompt that asks for a single-digit answer.
     """
     
     def __init__(self, model_command: Optional[str] = None):
         """
         Initialize the prompt with a model command.
         
-        If no model_command is provided, it defaults to using the deepseek-r1-7b model.
+        The model_command is expected to be provided from the user‐selection.
         """
         if model_command is None:
-            self.model_command = "ollama run deepseek-r1-7b"
+            raise ValueError("A model command must be provided.")
         else:
             self.model_command = model_command
 
     def extract_security_info(self, text: str) -> Dict[str, Any]:
-        """
-        Extract additional security-related information (e.g., CVE/CWE IDs, confidence, severity)
-        from the given text.
-        """
         import re
         info_patterns = {
             'cve': r"CVE-\d{4}-\d{4,7}",
@@ -91,7 +84,8 @@ class BasePrompt(ABC):
         payload = {
             "model": self.model_command,
             "prompt": prompt,
-            "temperature": 0.0
+            "temperature": 0.0,
+            "stream": False
         }
         try:
             response = requests.post("http://localhost:11434/api/generate", json=payload)
@@ -112,7 +106,7 @@ class BasePrompt(ABC):
                 logger.error("LLM API returned status code: %s", response.status_code)
         except Exception as e:
             logger.error("Error calling LLM API for final decision: %s", e)
-        return None
+        return Config.AMBIGUOUS_DECISION_VALUE
 
     def parse_vulnerability(self, result: str) -> Optional[int]:
         """

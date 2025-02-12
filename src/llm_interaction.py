@@ -13,8 +13,9 @@ class LLMInteraction:
     def __init__(self, db_file: str, model_name: str):
         self.db_file = Config.DATABASE_PATH
         self.model_name = model_name
-        self.model_parameter = Config.get_model_command(model_name).split(" ")[2]  # Extract the model name from command
-        self.table_name = f"vulnerabilities_{model_name.replace('-', '_')}"
+        # Use the full command exactly as defined in the configuration.
+        self.model_parameter = Config.get_model_identifier(model_name)
+        self.table_name = f"vulnerabilities_{model_name.replace('-', '_').replace('.', '_')}"
         
         # Initialize database connection
         self.conn = sqlite3.connect(self.db_file, timeout=60.0)
@@ -25,17 +26,19 @@ class LLMInteraction:
         self.conn.execute("PRAGMA synchronous=NORMAL")
         self.conn.execute("PRAGMA busy_timeout=60000")
         
+        # Pass the chosen model command to each prompt strategy.
+        # This ensures that if the user selects "gemma2" for example, the BasePrompt receives the command for gemma2.
         self.strategies = {
-            "baseline": BaselinePrompt(),
-            "cot": ChainOfThoughtPrompt(),
-            "think": ThinkPrompt(),
-            "think_verify": ThinkVerifyPrompt()
+            "baseline": BaselinePrompt(self.model_parameter),
+            "cot": ChainOfThoughtPrompt(self.model_parameter),
+            "think": ThinkPrompt(self.model_parameter),
+            "think_verify": ThinkVerifyPrompt(self.model_parameter)
         }
         
         # Create the table
         self.create_table()
+        logger.info(f"Table {self.table_name} is ready with all required columns")
         logger.info(f"Initialized LLM interaction with model: {model_name}, parameter: {self.model_parameter}")
-    
     def __del__(self):
         """Cleanup database connection."""
         if hasattr(self, 'conn') and self.conn:
@@ -133,7 +136,9 @@ class LLMInteraction:
         """Send a single prompt to the model and get a response."""
         payload = {
             "model": Config.get_model_command(self.model_name),
-            "prompt": prompt
+            "prompt": prompt,
+            "temperature": 0.7,
+            "stream": False
         }
 
         for attempt in range(max_retries):
@@ -162,7 +167,8 @@ class LLMInteraction:
             payload = {
                 "model": self.model_parameter,
                 "prompt": prompt,
-                "temperature": 0.7
+                "temperature": 0.7,
+                "stream": False
             }
             
             logger.info(f"Processing prompt {i+1}/{len(prompts)}")

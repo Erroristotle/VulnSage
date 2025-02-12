@@ -1,6 +1,7 @@
 from .base_prompt import BasePrompt
 from typing import Optional
 import re
+from ..config import Config
 
 class BaselinePrompt(BasePrompt):
     def create_prompt(self, code_block: str, cwe_id: str) -> str:
@@ -53,4 +54,4 @@ class BaselinePrompt(BasePrompt):
         
         # If no clear YES/NO decision is found, save the raw response for review.
         self.last_raw_response = result
-        return None
+        return Config.AMBIGUOUS_DECISION_VALUE
