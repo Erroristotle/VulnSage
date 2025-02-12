@@ -34,16 +34,16 @@ class VulnerabilityAnalyzer:
 
     def signal_handler(self, signum, frame):
         """Handle shutdown signals."""
-        logger.info("Received shutdown signal. Cleaning up...")
+        logger.info("Received shutdown signal.")
         self.running = False
-        self.cleanup()
+        # self.cleanup()
         sys.exit(0)
 
-    def cleanup(self):
-        """Cleanup resources."""
-        logger.info("Performing cleanup...")
-        self.model_manager.cleanup_model()
-        logger.info("Cleanup completed")
+    # def cleanup(self):
+    #     """Cleanup resources."""
+    #     logger.info("Performing cleanup...")
+    #     self.model_manager.cleanup_model()
+    #     logger.info("Cleanup completed")
 
     def run_analysis(self, model_name: str) -> None:
         """Run the vulnerability analysis for a specific model using batching."""
@@ -121,9 +121,9 @@ class VulnerabilityAnalyzer:
         except Exception as e:
             logger.error(f"Error in analysis: {e}")
         finally:
-            logger.info("All strategies completed. Performing cleanup...")
-            self.model_manager.cleanup_model()  # No argument needed
-            logger.info("Cleanup completed")
+            logger.info("All strategies completed.")
+            # self.model_manager.cleanup_model()  # No argument needed
+            # logger.info("Cleanup completed")
         
 # Initialize analyzer
 analyzer = VulnerabilityAnalyzer()
