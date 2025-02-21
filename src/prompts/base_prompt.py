@@ -4,6 +4,7 @@ import logging
 import requests
 from typing import Optional, Dict, Any
 from ..config import Config
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -98,34 +99,35 @@ class BasePrompt(ABC):
                 response_lines = response.content.decode('utf-8').splitlines()
                 full_response = ''.join([json.loads(line)["response"] for line in response_lines if line])
                 
-                # Split into lines and get first non-empty line
-                lines = [line.strip() for line in full_response.split('\n')]
-                first_line = next((line for line in lines if line), '')
+                # First, try to extract from a line that starts with "Final Decision:"
+                final_decision_pattern = re.compile(r'final decision:\s*(\S+)', re.IGNORECASE)
+                match = final_decision_pattern.search(full_response)
+                if match:
+                    token = match.group(1).strip().lower()
+                    if token in ["1", "yes"]:
+                        logger.debug(f"Extracted decision from token '{token}' -> 1")
+                        return 1
+                    elif token in ["0", "no"]:
+                        logger.debug(f"Extracted decision from token '{token}' -> 0")
+                        return 0
+                    elif token in ["2", "ambiguous"]:
+                        logger.debug(f"Extracted decision from token '{token}' -> 2")
+                        return 2
+                    else:
+                        logger.warning(f"Unexpected token '{token}' after 'Final Decision:'")
                 
-                # Extract first digit found in the first line
-                import re
-                digit_match = re.search(r'^[012]$', first_line)
+                # Fallback: If no proper token found on the 'Final Decision:' line,
+                # check if the very first non-empty line is a digit.
+                lines = [line.strip() for line in full_response.split('\n') if line.strip()]
+                if lines:
+                    first_line = lines[0]
+                    digit_match = re.match(r'^[012]$', first_line)
+                    if digit_match:
+                        decision = int(digit_match.group(0))
+                        logger.debug(f"Extracted decision {decision} from first line: '{first_line}'")
+                        return decision
                 
-                if digit_match:
-                    decision = int(digit_match.group(0))
-                    logger.debug(f"Extracted decision {decision} from first line: '{first_line}'")
-                    return decision
-                
-                # If no clean digit found in first line, try to infer from full text
-                logger.warning(f"No clear digit in first line. Analyzing full response: {full_response[:200]}...")
-                
-                # Look for clear yes/no language in the full response
-                lower_response = full_response.lower()
-                if ("vulnerability exists" in lower_response or 
-                    "is vulnerable" in lower_response or 
-                    "vulnerability is present" in lower_response):
-                    return 1
-                if ("no vulnerability" in lower_response or 
-                    "not vulnerable" in lower_response or 
-                    "vulnerability is not present" in lower_response):
-                    return 0
-                    
-                # If still no clear decision, look for the first lone digit in the text
+                # Fallback: Look for the first occurrence of a lone digit in the full text.
                 digit_match = re.search(r'\b[012]\b', full_response)
                 if digit_match:
                     decision = int(digit_match.group(0))
@@ -133,15 +135,13 @@ class BasePrompt(ABC):
                     return decision
                 
                 logger.warning("Could not determine clear decision, marking as ambiguous")
-                return Config.AMBIGUOUS_DECISION_VALUE
-                
+                return int(Config.AMBIGUOUS_DECISION_VALUE)
             else:
                 logger.error(f"LLM API returned status code: {response.status_code}")
-                return Config.AMBIGUOUS_DECISION_VALUE
-                
+                return int(Config.AMBIGUOUS_DECISION_VALUE)
         except Exception as e:
             logger.error(f"Error in llm_final_decision: {e}")
-            return Config.AMBIGUOUS_DECISION_VALUE
+            return int(Config.AMBIGUOUS_DECISION_VALUE)
 
     def parse_vulnerability(self, result: str) -> Optional[int]:
         """

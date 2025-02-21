@@ -53,7 +53,7 @@ class Database:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT COMMIT_HASH, vulnerable_code_block, patched_code_block,
-                       VULNERABILITY_CWE, VULNERABILITY_YEAR, description_in_patch
+                       VULNERABILITY_CWE, VULNERABILITY_YEAR, description_in_patch, PROJECT
                 FROM vulnerabilities
             """)
             return [
@@ -63,7 +63,8 @@ class Database:
                     patched_code=row[2],
                     cwe_id=row[3],
                     year=row[4],
-                    description=row[5]
+                    description=row[5],
+                    project=row[6]
                 )
                 for row in cursor.fetchall()
             ]
@@ -84,15 +85,17 @@ class Database:
             conn.commit()
 
     def get_unprocessed_commits(self, model_name: str, strategy: str) -> List[str]:
-        """Get list of commits that haven't been processed for given strategy."""
+        """Get list of commits that haven't been processed for the given strategy."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            table_name = f"vulnerabilities_{model_name}"
+            # Normalize model name to match the table naming convention used elsewhere.
+            normalized_model = model_name.replace('-', '_').replace('.', '_')
+            table_name = f"vulnerabilities_{normalized_model}"
             cursor.execute(f"""
                 SELECT v.COMMIT_HASH
                 FROM vulnerabilities v
                 LEFT JOIN {table_name} m ON v.COMMIT_HASH = m.COMMIT_HASH
                 WHERE m.{strategy.upper()}_VULN IS NULL
-                   OR m.{strategy.upper()}_PATCH IS NULL
+                OR m.{strategy.upper()}_PATCH IS NULL
             """)
             return [row[0] for row in cursor.fetchall()]

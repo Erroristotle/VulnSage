@@ -64,4 +64,6 @@ class Config:
         model_identifier, _ = cls.get_model_command(model_name)
         if model_identifier is None:
             return None
-        return f"{model_identifier}:custom"
+        # Normalize by replacing any colon with a hyphen.
+        safe_model_identifier = model_identifier.replace(":", "-")
+        return f"{safe_model_identifier}:custom"

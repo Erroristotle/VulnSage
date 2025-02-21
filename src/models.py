@@ -11,6 +11,7 @@ class VulnerabilityData:
     cwe_id: str
     year: Optional[int]
     description: Optional[str]
+    project: str
 
 @dataclass
 class ProcessingResult:
