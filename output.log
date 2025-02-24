@@ -1,0 +1,23 @@
+nohup: ignoring input
+
+Available models:
+1. deepseek-v2-16b
+2. llama3_1_8b
+3. llama3_1_70b
+4. gemma2-9b
+5. gemma2-27b
+6. deepseek-coder-16b
+7. qwen2.5-coder-7b
+8. qwen2.5-coder-32b
+9. codellama-7b
+10. codellama-34b
+11. deepseek-r1-7b
+12. deepseek-r1-32b
+
+Enter model number to use: Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/azibaeir/Research/Benchmarking/project/scripts/run_analysis.py", line 242, in <module>
+    selection = input("\nEnter model number to use: ")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 9] Bad file descriptor

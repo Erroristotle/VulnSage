@@ -1,0 +1,2 @@
+FROM qwen2.5-coder
+PARAMETER num_ctx 32768
