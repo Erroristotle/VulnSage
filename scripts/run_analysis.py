@@ -10,6 +10,7 @@ from src.database import Database
 from src.utils.model_manager import ModelManager
 from src.llm_interaction import LLMInteraction
 from src.models import VulnerabilityData
+from src.utils.recovery import ProcessingStateManager
 
 # Configure logging
 logging.basicConfig(
@@ -21,6 +22,14 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+class GracefulShutdown:
+    shutdown_flag = False
+
+    @classmethod
+    def initiate_shutdown(cls, signum, frame):
+        logging.info("Shutdown signal received. Completing current task...")
+        cls.shutdown_flag = True
 
 class VulnerabilityAnalyzer:
     """Main class for running vulnerability analysis using batched LLM calls."""
@@ -43,6 +52,13 @@ class VulnerabilityAnalyzer:
     def run_analysis(self, model_name: str) -> None:
         """Run the vulnerability analysis for a specific model using batching."""
         try:
+            # Initialize recovery system
+            state_manager = ProcessingStateManager()
+            
+            # Set up signal handlers for graceful shutdown
+            signal.signal(signal.SIGINT, GracefulShutdown.initiate_shutdown)
+            signal.signal(signal.SIGTERM, GracefulShutdown.initiate_shutdown)
+
             # Install model
             logger.info(f"Installing model: {model_name}")
             success, message = self.model_manager.install_model(model_name)
@@ -55,8 +71,8 @@ class VulnerabilityAnalyzer:
             logger.info(f"Found {len(vulnerability_data)} vulnerabilities to process")
             
             # Filter vulnerabilities: only process projects "linux" and "xen"
-            vulnerability_data = [v for v in vulnerability_data if v.project.lower() in ["linux", "xen"]]
-            logger.info(f"After filtering, {len(vulnerability_data)} vulnerabilities remain for projects linux and xen")
+            # vulnerability_data = [v for v in vulnerability_data if v.project.lower() in ["linux", "xen"]]
+            # logger.info(f"After filtering, {len(vulnerability_data)} vulnerabilities remain for projects linux and xen")
 
             # Initialize LLM interaction
             llm = LLMInteraction(Config.DATABASE_PATH, model_name)
