@@ -1,6 +1,9 @@
 import subprocess
 import time
 import logging
+import os
+import signal
+import psutil
 from typing import Optional, Tuple
 from ..config import Config
 
@@ -12,6 +15,7 @@ class ModelManager:
     def __init__(self):
         self.current_model = None
         self.model_parameter = None
+        self.ollama_process = None
 
     def install_model(self, model_name: str) -> Tuple[bool, str]:
         """
@@ -64,3 +68,37 @@ class ModelManager:
     def get_model_parameter(self) -> Optional[str]:
         """Get the current model parameter for API calls."""
         return self.model_parameter
+
+    def check_ollama_running(self):
+        """Check if ollama is running"""
+        try:
+            for proc in psutil.process_iter(['name']):
+                if 'ollama' in proc.info['name']:
+                    return True
+            return False
+        except:
+            return False
+            
+    def start_ollama(self):
+        """Start ollama server"""
+        try:
+            if not self.check_ollama_running():
+                logger.info("Starting ollama server...")
+                ollama_path = os.path.expanduser("~/ollama/bin/ollama")
+                subprocess.Popen([ollama_path, "serve"], 
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL,
+                               start_new_session=True)
+                time.sleep(5)  # Wait for server to start
+                logger.info("Ollama server started")
+            else:
+                logger.info("Ollama server already running")
+        except Exception as e:
+            logger.error(f"Error starting ollama: {str(e)}")
+            raise
+
+    def ensure_ollama_running(self):
+        """Ensure ollama is running, restart if needed"""
+        if not self.check_ollama_running():
+            self.logger.warning("Ollama not running, attempting to restart...")
+            self.start_ollama()

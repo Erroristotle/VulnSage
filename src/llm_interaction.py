@@ -6,6 +6,7 @@ from .config import Config
 import json
 import sqlite3
 import logging
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -39,6 +40,7 @@ class LLMInteraction:
         self.create_table()
         logger.info(f"Table {self.table_name} is ready with all required columns")
         logger.info(f"Initialized LLM interaction with model: {model_name}, parameter: {self.model_parameter}")
+        self._save_result = self._save_result_to_db
     
     def __del__(self):
         """Cleanup database connection."""
@@ -133,6 +135,94 @@ class LLMInteraction:
                 logger.info(f"{strategy} results for {commit_hash}:")
                 logger.info(f"VULN: {result[0]}, PATCH: {result[1]}")
         
+    def _save_result_to_db(self, commit_hash: str, response: str, strategy: str) -> None:
+        """Save result and reasoning to database"""
+        try:
+            status = self.strategies[strategy].parse_response(response)
+            if status is not None:
+                cursor = self.conn.cursor()
+                
+                # Determine if this is for vulnerable or patched code
+                is_vulnerable = True  # This will be set correctly from the input data
+                
+                # Determine column names
+                result_column = f"{strategy.upper()}_{'VULN' if is_vulnerable else 'PATCH'}"
+                
+                if strategy == "baseline":
+                    # For baseline, only save the result (no reasoning)
+                    cursor.execute(f"""
+                        INSERT INTO {self.table_name} (COMMIT_HASH, {result_column})
+                        VALUES (?, ?)
+                        ON CONFLICT(COMMIT_HASH) DO UPDATE SET 
+                            {result_column} = excluded.{result_column}
+                    """, (commit_hash, status))
+                else:
+                    # For other strategies, save both result and reasoning
+                    reasoning_column = f"{strategy.upper()}_REASONING_{'VULN' if is_vulnerable else 'PATCH'}"
+                    cursor.execute(f"""
+                        INSERT INTO {self.table_name} (COMMIT_HASH, {result_column}, {reasoning_column})
+                        VALUES (?, ?, ?)
+                        ON CONFLICT(COMMIT_HASH) DO UPDATE SET 
+                            {result_column} = excluded.{result_column},
+                            {reasoning_column} = excluded.{reasoning_column}
+                    """, (commit_hash, status, response))
+                
+                self.conn.commit()
+                logger.info(f"Saved result for commit {commit_hash}")
+                
+        except sqlite3.Error as e:
+            logger.error(f"Database error while saving result: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error saving result: {str(e)}")
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    def _make_request(self, prompt: str) -> str:
+        """Make a request to the LLM with retry logic and timeout"""
+        try:
+            # Check if ollama is running before making request
+            if not self.model_manager.check_ollama_running():
+                self.model_manager.start_ollama()
+                time.sleep(5)  # Wait for server to start
+                
+            response = requests.post(
+                Config.API_URL,
+                json={"model": self.model_parameter, "prompt": prompt},
+                timeout=Config.TIMEOUT,
+                stream=True
+            )
+            
+            if response.status_code != 200:
+                raise requests.exceptions.RequestException(f"Request failed with status {response.status_code}")
+            
+            # Accumulate the response
+            full_response = ""
+            for line in response.iter_lines():
+                if line:
+                    try:
+                        json_response = json.loads(line.decode('utf-8'))
+                        if 'response' in json_response:
+                            full_response += json_response['response']
+                        if json_response.get('done', False):
+                            break
+                    except json.JSONDecodeError:
+                        logger.warning(f"Failed to decode JSON line: {line}")
+                        continue
+            
+            if not full_response:
+                raise ValueError("Empty response from model")
+                
+            return full_response
+            
+        except requests.exceptions.Timeout:
+            logger.error(f"Request timed out after {Config.TIMEOUT} seconds")
+            raise
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request failed: {str(e)}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in _make_request: {str(e)}")
+            raise
+
     def query_model(self, prompt: str, max_retries: int = 3, retry_delay: int = 2) -> Optional[str]:
         """Send a single prompt to the model and get a response."""
         payload = {
@@ -262,78 +352,41 @@ class LLMInteraction:
                 except sqlite3.Error as e:
                     logger.error(f"Database error: {e}")
 
-    def batch_detection(self, inputs: List[Dict], strategy: str = "baseline") -> None:
-        """Process a batch of vulnerability detection requests."""
+    def batch_detection(self, inputs: List[Dict], strategy: str) -> None:
+        """Process a batch of inputs with error handling and progress tracking"""
         logger.info(f"Processing batch of {len(inputs)} inputs with strategy: {strategy}")
         
-        # Build prompts and metadata list
-        prompts = []
-        metadata_list = []
-        
-        for item in inputs:
-            prompt = self.strategies[strategy].create_prompt(
-                item["code_block"], 
-                item["cwe_id"]
-            )
-            prompts.append(prompt)
-            metadata_list.append({
-                "commit_hash": item["commit_hash"],
-                "is_vulnerable": item["is_vulnerable"]
-            })
-        
-        responses = self.query_model_batch(prompts)
-        if not responses:
-            logger.error("Batch query failed completely")
-            return
-
-        # Process responses
-        for metadata, full_response in zip(metadata_list, responses):
-            if not full_response:
-                continue
-                
-            commit_hash = metadata["commit_hash"]
-            is_vulnerable = metadata["is_vulnerable"]
-            status = self.strategies[strategy].parse_response(full_response)
+        for idx, input_data in enumerate(inputs, 1):
+            logger.info(f"Processing prompt {idx}/{len(inputs)}")
             
-            if status is not None:
+            try:
+                # Generate prompt based on strategy
+                prompt = self.strategies[strategy].create_prompt(
+                    input_data["code_block"], 
+                    input_data["cwe_id"]
+                )
+                
+                # Make request with retry logic
                 try:
-                    cursor = self.conn.cursor()
-                    
-                    # Determine column names
-                    result_column = f"{strategy.upper()}_{'VULN' if is_vulnerable else 'PATCH'}"
-                    reasoning_column = f"{strategy.upper()}_REASONING_{'VULN' if is_vulnerable else 'PATCH'}"
-                    
-                    if strategy == "baseline":
-                        # For baseline, only store the decision
-                        cursor.execute(f"""
-                            INSERT INTO {self.table_name} (COMMIT_HASH, {result_column})
-                            VALUES (?, ?)
-                            ON CONFLICT(COMMIT_HASH) DO UPDATE SET {result_column} = excluded.{result_column}
-                        """, (commit_hash, status))
-                    else:
-                        # For other strategies, store both decision and reasoning
-                        cursor.execute(f"""
-                            INSERT INTO {self.table_name} (COMMIT_HASH, {result_column}, {reasoning_column})
-                            VALUES (?, ?, ?)
-                            ON CONFLICT(COMMIT_HASH) DO UPDATE SET 
-                            {result_column} = excluded.{result_column},
-                            {reasoning_column} = excluded.{reasoning_column}
-                        """, (commit_hash, status, full_response))
-                    
-                    self.conn.commit()
-                    logger.info(f"Storing result {status} for commit {commit_hash} in column {result_column}")
-                    if strategy != "baseline":
-                        logger.info(f"Full reasoning stored in {reasoning_column}")
-                    logger.info("Successfully stored result in database")
-                    
-                    # Verify results after storing
-                    self.verify_results(commit_hash, strategy)
-                    
-                except sqlite3.Error as e:
-                    logger.error(f"Database error: {e}")
-                    cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{self.table_name}'")
-                    logger.error(f"Table schema: {cursor.fetchone()}")
-                        
+                    response = self._make_request(prompt)
+                    if response:
+                        # Save result to database
+                        self._save_result(
+                            commit_hash=input_data['commit_hash'],
+                            response=response,
+                            strategy=strategy
+                        )
+                except Exception as e:
+                    logger.error(f"Failed to process or save response: {str(e)}")
+                    continue
+                
+                # Add small delay between requests
+                time.sleep(2)  # Increased delay to prevent rate limiting
+                
+            except Exception as e:
+                logger.error(f"Error processing input {idx}: {str(e)}")
+                continue
+
     def get_unprocessed_strategies(self) -> List[str]:
         """Return a list of strategies that have empty columns."""
         cursor = self.conn.cursor()

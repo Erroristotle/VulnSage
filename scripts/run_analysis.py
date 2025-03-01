@@ -38,10 +38,14 @@ class VulnerabilityAnalyzer:
         self.model_manager = ModelManager()
         self.database = Database(Config.DATABASE_PATH)
         self.running = True
+        self.state_manager = ProcessingStateManager()
         
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
+
+        # Ensure ollama is running at start
+        self.model_manager.ensure_ollama_running()
 
     def signal_handler(self, signum, frame):
         """Handle shutdown signals."""
@@ -52,13 +56,6 @@ class VulnerabilityAnalyzer:
     def run_analysis(self, model_name: str) -> None:
         """Run the vulnerability analysis for a specific model using batching."""
         try:
-            # Initialize recovery system
-            state_manager = ProcessingStateManager()
-            
-            # Set up signal handlers for graceful shutdown
-            signal.signal(signal.SIGINT, GracefulShutdown.initiate_shutdown)
-            signal.signal(signal.SIGTERM, GracefulShutdown.initiate_shutdown)
-
             # Install model
             logger.info(f"Installing model: {model_name}")
             success, message = self.model_manager.install_model(model_name)
@@ -77,62 +74,79 @@ class VulnerabilityAnalyzer:
             # Initialize LLM interaction
             llm = LLMInteraction(Config.DATABASE_PATH, model_name)
             strategies = ["baseline", "cot", "think", "think_verify"]
+            batch_size = getattr(Config, 'BATCH_SIZE', 4)
 
             for strategy in strategies:
                 logger.info(f"Processing strategy: {strategy}")
                 
-                # Retrieve unprocessed commits
+                # Get unprocessed commits
                 unprocessed_commits = self.database.get_unprocessed_commits(model_name, strategy)
                 
                 if not unprocessed_commits:
                     logger.info(f"All commits already processed for strategy {strategy}. Skipping.")
                     continue
 
-                # Filter vulnerabilities for only unprocessed commits
+                # Filter vulnerabilities for unprocessed commits
                 vulnerabilities_for_strategy = [
-                    v for v in vulnerability_data if v.commit_hash in unprocessed_commits
+                    v for v in vulnerability_data 
+                    if v.commit_hash in unprocessed_commits
                 ]
+                
                 logger.info(f"Found {len(vulnerabilities_for_strategy)} unprocessed vulnerabilities for {strategy}")
-
                 logger.info(f"Starting {strategy} strategy")
-                batch_size = getattr(Config, 'BATCH_SIZE', 8)
+
+                # Process in batches
                 for i in range(0, len(vulnerabilities_for_strategy), batch_size):
+                    if not self.running:
+                        logger.info("Shutdown requested. Saving state and exiting...")
+                        return
+                        
                     batch = vulnerabilities_for_strategy[i:i+batch_size]
-                    vulnerable_inputs = []
-                    patched_inputs = []
+                    
+                    try:
+                        # Prepare vulnerable and patched inputs
+                        vulnerable_inputs = []
+                        patched_inputs = []
 
-                    for data in batch:
-                        if not self.running:
-                            break
-                        if data.vulnerable_code:
-                            vulnerable_inputs.append({
-                                'commit_hash': data.commit_hash,
-                                'code_block': data.vulnerable_code,
-                                'cwe_id': data.cwe_id,
-                                'is_vulnerable': True
-                            })
-                        if data.patched_code:
-                            patched_inputs.append({
-                                'commit_hash': data.commit_hash,
-                                'code_block': data.patched_code,
-                                'cwe_id': data.cwe_id,
-                                'is_vulnerable': False
-                            })
+                        for data in batch:
+                            if data.vulnerable_code:
+                                vulnerable_inputs.append({
+                                    'commit_hash': data.commit_hash,
+                                    'code_block': data.vulnerable_code,
+                                    'cwe_id': data.cwe_id,
+                                    'is_vulnerable': True
+                                })
+                            if data.patched_code:
+                                patched_inputs.append({
+                                    'commit_hash': data.commit_hash,
+                                    'code_block': data.patched_code,
+                                    'cwe_id': data.cwe_id,
+                                    'is_vulnerable': False
+                                })
 
-                    if vulnerable_inputs:
-                        logger.info(f"Processing vulnerable batch for {strategy} with {len(vulnerable_inputs)} commits")
-                        llm.batch_detection(vulnerable_inputs, strategy)
+                        # Process vulnerable code
+                        if vulnerable_inputs:
+                            logger.info(f"Processing vulnerable batch {i//batch_size + 1} of {(len(vulnerabilities_for_strategy)-1)//batch_size + 1}")
+                            llm.batch_detection(vulnerable_inputs, strategy)
 
-                    if patched_inputs:
-                        logger.info(f"Processing patched batch for {strategy} with {len(patched_inputs)} commits")
-                        llm.batch_detection(patched_inputs, strategy)
-
+                        # Process patched code
+                        if patched_inputs:
+                            logger.info(f"Processing patched batch {i//batch_size + 1} of {(len(vulnerabilities_for_strategy)-1)//batch_size + 1}")
+                            llm.batch_detection(patched_inputs, strategy)
+                            
+                    except Exception as e:
+                        logger.error(f"Error processing batch: {str(e)}")
+                        continue
+                        
+                    # Add delay between batches
+                    time.sleep(2)
+                    
                 logger.info(f"Completed {strategy} strategy")
 
         except Exception as e:
-            logger.error(f"Error in analysis: {e}")
+            logger.error(f"Critical error in analysis: {str(e)}")
         finally:
-            logger.info("All strategies completed.")
+            logger.info("Analysis completed or interrupted. Final state saved.")
 
 def main():
     # Initialize analyzer

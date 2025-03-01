@@ -5,9 +5,10 @@ class Config:
     """Configuration settings for the vulnerability detection system."""
     
     # API and Database settings
-    API_URL: str = "http://localhost:11434/api/generate"
+    API_URL = "http://localhost:11434/api/generate"
     DATABASE_PATH: str = "vulnerability_dataset/database/database.sqlite"
     # OUTPUT_DIR: str = os.path.join("..", "output")
+    TIMEOUT = 300  # 5 minutes
 
     # Configurable constant for ambiguous decisions
     AMBIGUOUS_DECISION_VALUE: float = 2.0
@@ -29,10 +30,10 @@ class Config:
     }
 
     # Processing settings
-    MAX_RETRIES: int = 3
-    RETRY_DELAY: int = 2
+    MAX_RETRIES = 3
+    RETRY_DELAY = 2
     MAX_WORKERS: int = os.cpu_count()
-    BATCH_SIZE: int = 4
+    BATCH_SIZE = 4  # Reduced batch size for better reliability
     SUB_BATCH_SIZE: int = 2  # For breaking down large batches
 
     # State management

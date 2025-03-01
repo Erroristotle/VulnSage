@@ -2,6 +2,9 @@ import sqlite3
 from typing import List, Optional, Tuple
 from contextlib import contextmanager
 from .models import VulnerabilityData
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Database:
     """Database management class."""
@@ -85,17 +88,35 @@ class Database:
             conn.commit()
 
     def get_unprocessed_commits(self, model_name: str, strategy: str) -> List[str]:
-        """Get list of commits that haven't been processed for the given strategy."""
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            # Normalize model name to match the table naming convention used elsewhere.
-            normalized_model = model_name.replace('-', '_').replace('.', '_')
-            table_name = f"vulnerabilities_{normalized_model}"
-            cursor.execute(f"""
-                SELECT v.COMMIT_HASH
-                FROM vulnerabilities v
-                LEFT JOIN {table_name} m ON v.COMMIT_HASH = m.COMMIT_HASH
-                WHERE m.{strategy.upper()}_VULN IS NULL
-                OR m.{strategy.upper()}_PATCH IS NULL
-            """)
-            return [row[0] for row in cursor.fetchall()]
+        """Get commits that haven't been processed for a specific model and strategy."""
+        table_name = f"vulnerabilities_{model_name.replace('-', '_').replace('.', '_')}"
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # First check if the commit exists in the model table
+                query = f"""
+                    SELECT DISTINCT v.COMMIT_HASH 
+                    FROM vulnerabilities v
+                    LEFT JOIN {table_name} m ON v.COMMIT_HASH = m.COMMIT_HASH
+                    WHERE m.COMMIT_HASH IS NULL
+                    OR (
+                        m.{strategy.upper()}_VULN IS NULL 
+                        OR m.{strategy.upper()}_PATCH IS NULL
+                        {'' if strategy == 'baseline' else f'''
+                        OR m.{strategy.upper()}_REASONING_VULN IS NULL 
+                        OR m.{strategy.upper()}_REASONING_PATCH IS NULL
+                        '''}
+                    )
+                """
+                
+                cursor.execute(query)
+                unprocessed = [row[0] for row in cursor.fetchall()]
+                
+                logger.info(f"Found {len(unprocessed)} unprocessed commits for {strategy}")
+                return unprocessed
+                
+        except sqlite3.Error as e:
+            logger.error(f"Database error in get_unprocessed_commits: {e}")
+            return []
