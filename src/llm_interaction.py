@@ -7,16 +7,17 @@ import json
 import sqlite3
 import logging
 from tenacity import retry, stop_after_attempt, wait_exponential
+from .utils.model_manager import ModelManager
 
 # Configure logger
 logger = logging.getLogger(__name__)
 class LLMInteraction:
-    def __init__(self, db_file: str, model_name: str):
+    def __init__(self, db_file: str, model_name: str, model_manager: ModelManager):
         self.db_file = Config.DATABASE_PATH
         self.model_name = model_name
-        # Use the full command exactly as defined in the configuration.
         self.model_parameter = Config.get_model_identifier(model_name)
         self.table_name = f"vulnerabilities_{model_name.replace('-', '_').replace('.', '_')}"
+        self.model_manager = model_manager  # Store the model manager instance
         
         # Initialize database connection
         self.conn = sqlite3.connect(self.db_file, timeout=60.0)
@@ -27,8 +28,7 @@ class LLMInteraction:
         self.conn.execute("PRAGMA synchronous=NORMAL")
         self.conn.execute("PRAGMA busy_timeout=60000")
         
-        # Pass the chosen model command to each prompt strategy.
-        # This ensures that if the user selects "gemma2" for example, the BasePrompt receives the command for gemma2.
+        # Initialize strategies
         self.strategies = {
             "baseline": BaselinePrompt(self.model_parameter),
             "cot": ChainOfThoughtPrompt(self.model_parameter),
@@ -175,15 +175,18 @@ class LLMInteraction:
         except Exception as e:
             logger.error(f"Error saving result: {str(e)}")
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=4, max=20))
     def _make_request(self, prompt: str) -> str:
         """Make a request to the LLM with retry logic and timeout"""
         try:
-            # Check if ollama is running before making request
+            # Check if ollama is running and responding
             if not self.model_manager.check_ollama_running():
-                self.model_manager.start_ollama()
-                time.sleep(5)  # Wait for server to start
-                
+                if not self.model_manager.wait_for_ollama(timeout=30):
+                    logger.error("Ollama not running or not responding")
+                    logger.info("Please ensure Ollama is running using: nohup ~/ollama/bin/ollama serve &>/dev/null & disown")
+                    raise Exception("Ollama not available")
+            
+            # Make request with timeout
             response = requests.post(
                 Config.API_URL,
                 json={"model": self.model_parameter, "prompt": prompt},
@@ -194,9 +197,15 @@ class LLMInteraction:
             if response.status_code != 200:
                 raise requests.exceptions.RequestException(f"Request failed with status {response.status_code}")
             
-            # Accumulate the response
+            # Accumulate the response with timeout
             full_response = ""
+            response_timeout = time.time() + Config.TIMEOUT
+            
             for line in response.iter_lines():
+                if time.time() > response_timeout:
+                    logger.error("Response accumulation timed out")
+                    raise TimeoutError("Response accumulation timed out")
+                    
                 if line:
                     try:
                         json_response = json.loads(line.decode('utf-8'))
@@ -213,14 +222,8 @@ class LLMInteraction:
                 
             return full_response
             
-        except requests.exceptions.Timeout:
-            logger.error(f"Request timed out after {Config.TIMEOUT} seconds")
-            raise
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request failed: {str(e)}")
-            raise
         except Exception as e:
-            logger.error(f"Unexpected error in _make_request: {str(e)}")
+            logger.error(f"Request failed: {str(e)}")
             raise
 
     def query_model(self, prompt: str, max_retries: int = 3, retry_delay: int = 2) -> Optional[str]:

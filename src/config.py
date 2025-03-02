@@ -8,7 +8,9 @@ class Config:
     API_URL = "http://localhost:11434/api/generate"
     DATABASE_PATH: str = "vulnerability_dataset/database/database.sqlite"
     # OUTPUT_DIR: str = os.path.join("..", "output")
-    TIMEOUT = 300  # 5 minutes
+    TIMEOUT = 300  # 5 minutes for overall request
+    RESPONSE_TIMEOUT = 60  # 1 minute for individual response accumulation
+    RESTART_WAIT = 10  # Seconds to wait after restart
 
     # Configurable constant for ambiguous decisions
     AMBIGUOUS_DECISION_VALUE: float = 2.0
@@ -32,6 +34,7 @@ class Config:
     # Processing settings
     MAX_RETRIES = 3
     RETRY_DELAY = 2
+    RETRY_BACKOFF = 2
     MAX_WORKERS: int = os.cpu_count()
     BATCH_SIZE = 4  # Reduced batch size for better reliability
     SUB_BATCH_SIZE: int = 2  # For breaking down large batches

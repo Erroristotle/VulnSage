@@ -71,8 +71,8 @@ class VulnerabilityAnalyzer:
             # vulnerability_data = [v for v in vulnerability_data if v.project.lower() in ["linux", "xen"]]
             # logger.info(f"After filtering, {len(vulnerability_data)} vulnerabilities remain for projects linux and xen")
 
-            # Initialize LLM interaction
-            llm = LLMInteraction(Config.DATABASE_PATH, model_name)
+            # Initialize LLM interaction with model manager
+            llm = LLMInteraction(Config.DATABASE_PATH, model_name, self.model_manager)
             strategies = ["baseline", "cot", "think", "think_verify"]
             batch_size = getattr(Config, 'BATCH_SIZE', 4)
 
