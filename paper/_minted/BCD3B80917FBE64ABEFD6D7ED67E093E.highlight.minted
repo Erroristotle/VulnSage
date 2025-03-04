@@ -1,0 +1,10 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{o}{\PYGZlt{}}\PYG{n}{thinking}\PYG{o}{\PYGZgt{}}
+\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Identify}\PYG{+w}{ }\PYG{n}{potential}\PYG{+w}{ }\PYG{n}{security}\PYG{+w}{ }\PYG{n}{issues}\PYG{p}{.}
+\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Consider}\PYG{+w}{ }\PYG{n}{different}\PYG{+w}{ }\PYG{n}{attack}\PYG{+w}{ }\PYG{n}{scenarios}\PYG{p}{.}
+\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Examine}\PYG{+w}{ }\PYG{n}{function}\PYG{+w}{ }\PYG{n}{interactions}\PYG{+w}{ }\PYG{n}{and}\PYG{+w}{ }\PYG{n}{data}\PYG{+w}{ }\PYG{n}{flows}\PYG{p}{.}
+\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Question}\PYG{+w}{ }\PYG{n}{assumptions}\PYG{+w}{ }\PYG{n}{about}\PYG{+w}{ }\PYG{n}{input}\PYG{+w}{ }\PYG{n}{validation}\PYG{p}{.}
+\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Verify}\PYG{+w}{ }\PYG{n}{findings}\PYG{+w}{ }\PYG{n}{and}\PYG{+w}{ }\PYG{n}{rule}\PYG{+w}{ }\PYG{n}{out}\PYG{+w}{ }\PYG{n+nb}{false}\PYG{+w}{ }\PYG{n}{positives}\PYG{p}{.}
+\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Document}\PYG{+w}{ }\PYG{n}{confidence}\PYG{+w}{ }\PYG{n}{levels}\PYG{p}{.}
+\PYG{o}{\PYGZlt{}}\PYG{o}{/}\PYG{n}{thinking}\PYG{o}{\PYGZgt{}}
+\end{MintedVerbatim}

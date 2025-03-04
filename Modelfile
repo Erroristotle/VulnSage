@@ -1,2 +1,2 @@
-FROM qwen2.5-coder
-PARAMETER num_ctx 32768
+FROM qwen2.5-coder:32b
+PARAMETER num_ctx 16384

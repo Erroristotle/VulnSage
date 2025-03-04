@@ -1,0 +1,6 @@
+2025-03-02 16:46:46,014 - complete_database - ERROR - Failed to get available models: 'ModelManager' object has no attribute 'list_models'
+2025-03-02 16:46:46,014 - complete_database - ERROR - No models available. Please ensure Ollama is running.
+2025-03-02 16:47:27,701 - complete_database - ERROR - Failed to get available models: 'ModelManager' object has no attribute 'list_models'
+2025-03-02 16:47:27,701 - complete_database - ERROR - No models available. Please ensure Ollama is running.
+2025-03-02 16:50:14,088 - complete_database - INFO - Selected model: codellama:custom
+2025-03-02 16:50:40,280 - complete_database - INFO - Selected model: codellama:custom

@@ -1,0 +1,5 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{o}{\PYGZlt{}}\PYG{n}{findings}\PYG{o}{\PYGZgt{}}
+\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{n}{identified}\PYG{+w}{ }\PYG{n}{vulnerabilities}\PYG{p}{.}
+\PYG{o}{\PYGZlt{}}\PYG{o}{/}\PYG{n}{findings}\PYG{o}{\PYGZgt{}}
+\end{MintedVerbatim}

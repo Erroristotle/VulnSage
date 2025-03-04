@@ -112,38 +112,75 @@ class LLMInteraction:
         """Verify results and reasoning for a specific commit and strategy."""
         cursor = self.conn.cursor()
         
-        if strategy == "baseline":
-            cursor.execute(f"""
-                SELECT BASELINE_VULN, BASELINE_PATCH
-                FROM {self.table_name} 
-                WHERE COMMIT_HASH = ?
-            """, (commit_hash,))
-            result = cursor.fetchone()
-            if result:
-                logger.info(f"Baseline results for {commit_hash}:")
-                logger.info(f"VULN: {result[0]}, PATCH: {result[1]}")
-        else:
-            cursor.execute(f"""
-                SELECT 
-                    {strategy.upper()}_VULN,
-                    {strategy.upper()}_PATCH
-                FROM {self.table_name} 
-                WHERE COMMIT_HASH = ?
-            """, (commit_hash,))
-            result = cursor.fetchone()
-            if result:
-                logger.info(f"{strategy} results for {commit_hash}:")
-                logger.info(f"VULN: {result[0]}, PATCH: {result[1]}")
-        
-    def _save_result_to_db(self, commit_hash: str, response: str, strategy: str) -> None:
+        try:
+            if strategy == "baseline":
+                cursor.execute(f"""
+                    SELECT BASELINE_VULN, BASELINE_PATCH
+                    FROM {self.table_name} 
+                    WHERE COMMIT_HASH = ?
+                """, (commit_hash,))
+                result = cursor.fetchone()
+                if result:
+                    logger.info(f"Verified baseline results for {commit_hash}: VULN={result[0]}, PATCH={result[1]}")
+                    return True
+                else:
+                    logger.warning(f"No baseline results found for {commit_hash}")
+                    return False
+            else:
+                # For strategies with reasoning, first check just the result columns
+                result_cols = f"{strategy.upper()}_VULN, {strategy.upper()}_PATCH"
+                
+                cursor.execute(f"""
+                    SELECT {result_cols}
+                    FROM {self.table_name} 
+                    WHERE COMMIT_HASH = ?
+                """, (commit_hash,))
+                result = cursor.fetchone()
+                
+                if result:
+                    logger.info(f"Verified {strategy} results for {commit_hash}: VULN={result[0]}, PATCH={result[1]}")
+                    
+                    # Now check for reasoning columns separately
+                    reasoning_cols = f"{strategy.upper()}_REASONING_VULN, {strategy.upper()}_REASONING_PATCH"
+                    cursor.execute(f"""
+                        SELECT {reasoning_cols}
+                        FROM {self.table_name} 
+                        WHERE COMMIT_HASH = ?
+                    """, (commit_hash,))
+                    reasoning = cursor.fetchone()
+                    
+                    if reasoning and reasoning[0] is not None and reasoning[1] is not None:
+                        vuln_reasoning = reasoning[0][:50] + "..." if reasoning[0] else "None"
+                        patch_reasoning = reasoning[1][:50] + "..." if reasoning[1] else "None"
+                        logger.info(f"Reasoning VULN: {vuln_reasoning} PATCH: {patch_reasoning}")
+                    else:
+                        logger.info(f"Reasoning columns not yet populated for {commit_hash}")
+                    
+                    return True
+                else:
+                    logger.warning(f"No {strategy} results found for {commit_hash}")
+                    return False
+        except sqlite3.Error as e:
+            logger.error(f"Database error during verification: {e}")
+            return False
+
+    def _save_result_to_db(self, commit_hash: str, response: str, strategy: str, is_vulnerable: bool = None) -> None:
         """Save result and reasoning to database"""
         try:
+            # Get the is_vulnerable flag from the input data if not provided
+            if is_vulnerable is None:
+                # Try to determine from the context
+                for input_data in self.current_batch:
+                    if input_data['commit_hash'] == commit_hash:
+                        is_vulnerable = input_data.get('is_vulnerable', True)
+                        break
+            
+            # Log what we're saving for debugging
+            logger.info(f"Saving result for commit {commit_hash}, strategy {strategy}, is_vulnerable={is_vulnerable}")
+            
             status = self.strategies[strategy].parse_response(response)
             if status is not None:
                 cursor = self.conn.cursor()
-                
-                # Determine if this is for vulnerable or patched code
-                is_vulnerable = True  # This will be set correctly from the input data
                 
                 # Determine column names
                 result_column = f"{strategy.upper()}_{'VULN' if is_vulnerable else 'PATCH'}"
@@ -159,21 +196,36 @@ class LLMInteraction:
                 else:
                     # For other strategies, save both result and reasoning
                     reasoning_column = f"{strategy.upper()}_REASONING_{'VULN' if is_vulnerable else 'PATCH'}"
+                    
+                    # First check if the row exists
                     cursor.execute(f"""
-                        INSERT INTO {self.table_name} (COMMIT_HASH, {result_column}, {reasoning_column})
-                        VALUES (?, ?, ?)
-                        ON CONFLICT(COMMIT_HASH) DO UPDATE SET 
-                            {result_column} = excluded.{result_column},
-                            {reasoning_column} = excluded.{reasoning_column}
-                    """, (commit_hash, status, response))
+                        SELECT COMMIT_HASH FROM {self.table_name} WHERE COMMIT_HASH = ?
+                    """, (commit_hash,))
+                    
+                    if cursor.fetchone():
+                        # Row exists, update specific columns
+                        cursor.execute(f"""
+                            UPDATE {self.table_name}
+                            SET {result_column} = ?, {reasoning_column} = ?
+                            WHERE COMMIT_HASH = ?
+                        """, (status, response, commit_hash))
+                    else:
+                        # Row doesn't exist, insert with specific columns
+                        cursor.execute(f"""
+                            INSERT INTO {self.table_name} (COMMIT_HASH, {result_column}, {reasoning_column})
+                            VALUES (?, ?, ?)
+                        """, (commit_hash, status, response))
                 
                 self.conn.commit()
-                logger.info(f"Saved result for commit {commit_hash}")
+                logger.info(f"Saved result {status} for commit {commit_hash} in column {result_column}")
+                return True
                 
         except sqlite3.Error as e:
             logger.error(f"Database error while saving result: {str(e)}")
         except Exception as e:
             logger.error(f"Error saving result: {str(e)}")
+        
+        return False
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=4, max=20))
     def _make_request(self, prompt: str) -> str:
@@ -359,6 +411,13 @@ class LLMInteraction:
         """Process a batch of inputs with error handling and progress tracking"""
         logger.info(f"Processing batch of {len(inputs)} inputs with strategy: {strategy}")
         
+        # Store the current batch for reference
+        self.current_batch = inputs
+        
+        # Log the batch type for debugging
+        batch_type = "vulnerable" if inputs and inputs[0].get('is_vulnerable', True) else "patched"
+        logger.info(f"Processing {batch_type} batch with {len(inputs)} inputs")
+        
         for idx, input_data in enumerate(inputs, 1):
             logger.info(f"Processing prompt {idx}/{len(inputs)}")
             
@@ -374,11 +433,16 @@ class LLMInteraction:
                     response = self._make_request(prompt)
                     if response:
                         # Save result to database
-                        self._save_result(
+                        success = self._save_result(
                             commit_hash=input_data['commit_hash'],
                             response=response,
-                            strategy=strategy
+                            strategy=strategy,
+                            is_vulnerable=input_data.get('is_vulnerable', True)
                         )
+                        
+                        if success:
+                            # Verify the result was saved
+                            self.verify_results(input_data['commit_hash'], strategy)
                 except Exception as e:
                     logger.error(f"Failed to process or save response: {str(e)}")
                     continue
@@ -389,6 +453,9 @@ class LLMInteraction:
             except Exception as e:
                 logger.error(f"Error processing input {idx}: {str(e)}")
                 continue
+        
+        # Clear the current batch
+        self.current_batch = None
 
     def get_unprocessed_strategies(self) -> List[str]:
         """Return a list of strategies that have empty columns."""

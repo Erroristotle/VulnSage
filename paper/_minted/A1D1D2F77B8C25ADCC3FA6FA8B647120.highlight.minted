@@ -1,0 +1,8 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{o}{\PYGZlt{}}\PYG{n}{assessment}\PYG{o}{\PYGZgt{}}
+\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{n}{verified}\PYG{+w}{ }\PYG{n}{vulnerabilities}\PYG{p}{.}
+\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Map}\PYG{+w}{ }\PYG{n}{to}\PYG{+w}{ }\PYG{n}{CWE}\PYG{p}{.}
+\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Assign}\PYG{+w}{ }\PYG{n}{severity}\PYG{+w}{ }\PYG{n}{ratings}\PYG{p}{.}
+\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Recommend}\PYG{+w}{ }\PYG{n}{security}\PYG{+w}{ }\PYG{n}{fixes}\PYG{p}{.}
+\PYG{o}{\PYGZlt{}}\PYG{o}{/}\PYG{n}{assessment}\PYG{o}{\PYGZgt{}}
+\end{MintedVerbatim}
