@@ -1,2 +1,2 @@
-FROM qwen2.5-coder:32b
+FROM deepseek-v2
 PARAMETER num_ctx 16384
