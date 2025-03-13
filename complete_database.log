@@ -1,3 +1,0 @@
-2025-03-02 18:12:58,479 - complete_database - WARNING - Specified model 'llama3.1-8b' not found. Please select from available models.
-2025-03-02 18:13:11,755 - complete_database - INFO - Selected model: codellama:custom
-2025-03-02 18:13:11,761 - complete_database - ERROR - No table found for model codellama:custom

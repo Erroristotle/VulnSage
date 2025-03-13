@@ -1,8 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{o}{\PYGZlt{}}\PYG{n}{thinking}\PYG{o}{\PYGZgt{}}
-\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Examine}\PYG{+w}{ }\PYG{n}{the}\PYG{+w}{ }\PYG{n}{code}\PYG{+w}{ }\PYG{n}{structure}\PYG{p}{.}
-\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Identify}\PYG{+w}{ }\PYG{n}{security}\PYG{+w}{ }\PYG{n}{vulnerabilities}\PYG{p}{.}
-\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Consider}\PYG{+w}{ }\PYG{n}{attack}\PYG{+w}{ }\PYG{n}{vectors}\PYG{p}{.}
-\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{Document}\PYG{+w}{ }\PYG{n}{any}\PYG{+w}{ }\PYG{n}{uncertainties}\PYG{p}{.}
-\PYG{o}{\PYGZlt{}}\PYG{o}{/}\PYG{n}{thinking}\PYG{o}{\PYGZgt{}}
-\end{MintedVerbatim}

@@ -6,8 +6,8 @@ class Config:
     
     # API and Database settings
     API_URL = "http://localhost:11434/api/generate"
-    # DATABASE_PATH: str = "vulnerability_dataset/database/database.sqlite"
     DATABASE_PATH: str = "vulnerability_dataset/database/2025_database.sqlite"
+    # DATABASE_PATH: str = "vulnerability_dataset/database/2025_database.sqlite"
     # OUTPUT_DIR: str = os.path.join("..", "output")
     TIMEOUT = 300  # 5 minutes for overall request
     RESPONSE_TIMEOUT = 60  # 1 minute for individual response accumulation
