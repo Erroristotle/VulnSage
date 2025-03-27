@@ -1,0 +1,400 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{46}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[Abshari et~al\mbox{.}(2024)]%
+        {abshari2024llm}
+\bibfield{author}{\bibinfo{person}{Danial Abshari}, \bibinfo{person}{Chenglong Fu}, {and} \bibinfo{person}{Meera Sridhar}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{LLM-assisted Physical Invariant Extraction for Cyber-Physical Systems Anomaly Detection}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2411.10918}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Abshari and Sridhar(2025)]%
+        {abshari2025survey}
+\bibfield{author}{\bibinfo{person}{Danial Abshari} {and} \bibinfo{person}{Meera Sridhar}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{A Survey of Anomaly Detection in Cyber-Physical Systems}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2502.13256}} (\bibinfo{year}{2025}).
+\newblock
+
+
+\bibitem[Alam et~al\mbox{.}(2024)]%
+        {alam2024assess}
+\bibfield{author}{\bibinfo{person}{Minhaj~Nur Alam}, \bibinfo{person}{Tania Haghighi}, \bibinfo{person}{Sina Gholami}, {and} \bibinfo{person}{Theodore Leng}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{To assess the potential and capabilities of large language models (LLMs) trained on in-domain ophthalmology data.}
+\newblock \bibinfo{journal}{\emph{Investigative Ophthalmology \& Visual Science}} \bibinfo{volume}{65}, \bibinfo{number}{7} (\bibinfo{year}{2024}), \bibinfo{pages}{5656--5656}.
+\newblock
+
+
+\bibitem[Babaey and Faragardi(2025)]%
+        {babaey2025detecting}
+\bibfield{author}{\bibinfo{person}{Vahid Babaey} {and} \bibinfo{person}{Hamid~Reza Faragardi}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{Detecting Zero-Day Web Attacks Using One-Class Ensemble Classifiers}.
+\newblock  (\bibinfo{year}{2025}).
+\newblock
+
+
+\bibitem[Babaey and Ravindran(2025a)]%
+        {babaey2025gensqli}
+\bibfield{author}{\bibinfo{person}{Vahid Babaey} {and} \bibinfo{person}{Arun Ravindran}.} \bibinfo{year}{2025}\natexlab{a}.
+\newblock \showarticletitle{GenSQLi: A Generative Artificial Intelligence Framework for Automatically Securing Web Application Firewalls Against Structured Query Language Injection Attacks.}
+\newblock \bibinfo{journal}{\emph{Future Internet}} \bibinfo{volume}{17}, \bibinfo{number}{1} (\bibinfo{year}{2025}).
+\newblock
+
+
+\bibitem[Babaey and Ravindran(2025b)]%
+        {babaey2025genxss}
+\bibfield{author}{\bibinfo{person}{Vahid Babaey} {and} \bibinfo{person}{Arun Ravindran}.} \bibinfo{year}{2025}\natexlab{b}.
+\newblock \showarticletitle{GenXSS: an AI-Driven Framework for Automated Detection of XSS Attacks in WAFs}.
+\newblock  (\bibinfo{year}{2025}).
+\newblock
+
+
+\bibitem[Bhandari et~al\mbox{.}(2021)]%
+        {bhandari2021cvefixes}
+\bibfield{author}{\bibinfo{person}{Guru Bhandari}, \bibinfo{person}{Amara Naseer}, {and} \bibinfo{person}{Leon Moonen}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{CVEfixes: automated collection of vulnerabilities and their fixes from open-source software}. In \bibinfo{booktitle}{\emph{Proceedings of the 17th International Conference on Predictive Models and Data Analytics in Software Engineering}}. \bibinfo{pages}{30--39}.
+\newblock
+
+
+\bibitem[Carlini et~al\mbox{.}(2022)]%
+        {carlini2022quantifying}
+\bibfield{author}{\bibinfo{person}{Nicholas Carlini}, \bibinfo{person}{Daphne Ippolito}, \bibinfo{person}{Matthew Jagielski}, \bibinfo{person}{Katherine Lee}, \bibinfo{person}{Florian Tramer}, {and} \bibinfo{person}{Chiyuan Zhang}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Quantifying memorization across neural language models}. In \bibinfo{booktitle}{\emph{The Eleventh International Conference on Learning Representations}}.
+\newblock
+
+
+\bibitem[Chakraborty et~al\mbox{.}(2021)]%
+        {chakraborty2021deep}
+\bibfield{author}{\bibinfo{person}{Saikat Chakraborty}, \bibinfo{person}{Rahul Krishna}, \bibinfo{person}{Yangruibo Ding}, {and} \bibinfo{person}{Baishakhi Ray}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Deep learning based vulnerability detection: Are we there yet?}
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Software Engineering}} \bibinfo{volume}{48}, \bibinfo{number}{9} (\bibinfo{year}{2021}), \bibinfo{pages}{3280--3296}.
+\newblock
+
+
+\bibitem[Chen et~al\mbox{.}(2021)]%
+        {chen2021evaluating}
+\bibfield{author}{\bibinfo{person}{Mark Chen}, \bibinfo{person}{Jerry Tworek}, \bibinfo{person}{Heewoo Jun}, \bibinfo{person}{Qiming Yuan}, \bibinfo{person}{Henrique Ponde de~Oliveira Pinto}, \bibinfo{person}{Jared Kaplan}, \bibinfo{person}{Harri Edwards}, \bibinfo{person}{Yuri Burda}, \bibinfo{person}{Nicholas Joseph}, \bibinfo{person}{Greg Brockman}, {et~al\mbox{.}}} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Evaluating large language models trained on code}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2107.03374}} (\bibinfo{year}{2021}).
+\newblock
+
+
+\bibitem[Chen et~al\mbox{.}(2023)]%
+        {chen2023diversevul}
+\bibfield{author}{\bibinfo{person}{Yizheng Chen}, \bibinfo{person}{Zhoujie Ding}, \bibinfo{person}{Lamya Alowain}, \bibinfo{person}{Xinyun Chen}, {and} \bibinfo{person}{David Wagner}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Diversevul: A new vulnerable source code dataset for deep learning based vulnerability detection}. In \bibinfo{booktitle}{\emph{Proceedings of the 26th International Symposium on Research in Attacks, Intrusions and Defenses}}. \bibinfo{pages}{654--668}.
+\newblock
+
+
+\bibitem[Croft et~al\mbox{.}(2022)]%
+        {croft2022noisy}
+\bibfield{author}{\bibinfo{person}{Roland Croft}, \bibinfo{person}{M~Ali Babar}, {and} \bibinfo{person}{Huaming Chen}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Noisy label learning for security defects}. In \bibinfo{booktitle}{\emph{Proceedings of the 19th International Conference on Mining Software Repositories}}. \bibinfo{pages}{435--447}.
+\newblock
+
+
+\bibitem[{CVE Details}(2025)]%
+        {cvedetails}
+\bibfield{author}{\bibinfo{person}{{CVE Details}}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{CVE Details - The ultimate security vulnerability database}.
+\newblock
+\newblock
+\urldef\tempurl%
+\url{https://www.cvedetails.com/}
+\showURL{%
+\tempurl}
+\newblock
+\shownote{Accessed: March 13, 2025}.
+
+
+\bibitem[Dubey et~al\mbox{.}(2024)]%
+        {dubey2024llama}
+\bibfield{author}{\bibinfo{person}{Abhimanyu Dubey}, \bibinfo{person}{Abhinav Jauhri}, \bibinfo{person}{Abhinav Pandey}, \bibinfo{person}{Abhishek Kadian}, \bibinfo{person}{Ahmad Al-Dahle}, \bibinfo{person}{Aiesha Letman}, \bibinfo{person}{Akhil Mathur}, \bibinfo{person}{Alan Schelten}, \bibinfo{person}{Amy Yang}, \bibinfo{person}{Angela Fan}, {et~al\mbox{.}}} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{The Llama 3 Herd of Models}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2407.21783}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Evans(2008)]%
+        {evans2008dual}
+\bibfield{author}{\bibinfo{person}{Jonathan St~BT Evans}.} \bibinfo{year}{2008}\natexlab{}.
+\newblock \showarticletitle{Dual-processing accounts of reasoning, judgment, and social cognition}.
+\newblock \bibinfo{journal}{\emph{Annu. Rev. Psychol.}} \bibinfo{volume}{59}, \bibinfo{number}{1} (\bibinfo{year}{2008}), \bibinfo{pages}{255--278}.
+\newblock
+
+
+\bibitem[Fan et~al\mbox{.}(2020)]%
+        {fan2020ac}
+\bibfield{author}{\bibinfo{person}{Jiahao Fan}, \bibinfo{person}{Yi Li}, \bibinfo{person}{Shaohua Wang}, {and} \bibinfo{person}{Tien~N Nguyen}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{AC/C++ code vulnerability dataset with code changes and CVE summaries}. In \bibinfo{booktitle}{\emph{Proceedings of the 17th International Conference on Mining Software Repositories}}. \bibinfo{pages}{508--512}.
+\newblock
+
+
+\bibitem[Fu and Tantithamthavorn(2022)]%
+        {fu2022linevul}
+\bibfield{author}{\bibinfo{person}{Michael Fu} {and} \bibinfo{person}{Chakkrit Tantithamthavorn}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Linevul: A transformer-based line-level vulnerability prediction}. In \bibinfo{booktitle}{\emph{Proceedings of the 19th International Conference on Mining Software Repositories}}. \bibinfo{pages}{608--620}.
+\newblock
+
+
+\bibitem[Gao et~al\mbox{.}(2023)]%
+        {gao2023far}
+\bibfield{author}{\bibinfo{person}{Zeyu Gao}, \bibinfo{person}{Hao Wang}, \bibinfo{person}{Yuchen Zhou}, \bibinfo{person}{Wenyu Zhu}, {and} \bibinfo{person}{Chao Zhang}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{How Far Have We Gone in Vulnerability Detection Using Large Language Models}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2311.12420}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Guo et~al\mbox{.}(2025)]%
+        {guo2025deepseek}
+\bibfield{author}{\bibinfo{person}{Daya Guo}, \bibinfo{person}{Dejian Yang}, \bibinfo{person}{Haowei Zhang}, \bibinfo{person}{Junxiao Song}, \bibinfo{person}{Ruoyu Zhang}, \bibinfo{person}{Runxin Xu}, \bibinfo{person}{Qihao Zhu}, \bibinfo{person}{Shirong Ma}, \bibinfo{person}{Peiyi Wang}, \bibinfo{person}{Xiao Bi}, {et~al\mbox{.}}} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2501.12948}} (\bibinfo{year}{2025}).
+\newblock
+
+
+\bibitem[Guo et~al\mbox{.}(2024)]%
+        {guo2024deepseek}
+\bibfield{author}{\bibinfo{person}{Daya Guo}, \bibinfo{person}{Qihao Zhu}, \bibinfo{person}{Dejian Yang}, \bibinfo{person}{Zhenda Xie}, \bibinfo{person}{Kai Dong}, \bibinfo{person}{Wentao Zhang}, \bibinfo{person}{Guanting Chen}, \bibinfo{person}{Xiao Bi}, \bibinfo{person}{Yu Wu}, \bibinfo{person}{YK Li}, {et~al\mbox{.}}} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{DeepSeek-Coder: When the Large Language Model Meets Programming--The Rise of Code Intelligence}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2401.14196}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Haghighi et~al\mbox{.}(2024)]%
+        {haghighi2024eye}
+\bibfield{author}{\bibinfo{person}{Tania Haghighi}, \bibinfo{person}{Sina Gholami}, \bibinfo{person}{Jared~Todd Sokol}, \bibinfo{person}{Enaika Kishnani}, \bibinfo{person}{Adnan Ahsaniyan}, \bibinfo{person}{Holakou Rahmanian}, \bibinfo{person}{Fares Hedayati}, \bibinfo{person}{Theodore Leng}, {and} \bibinfo{person}{Minhaj~Nur Alam}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{EYE-Llama, an in-domain large language model for ophthalmology}.
+\newblock \bibinfo{journal}{\emph{bioRxiv}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Hommersom et~al\mbox{.}(2024)]%
+        {hommersom2024automated}
+\bibfield{author}{\bibinfo{person}{Daan Hommersom}, \bibinfo{person}{Antonino Sabetta}, \bibinfo{person}{Bonaventura Coppola}, \bibinfo{person}{Dario~Di Nucci}, {and} \bibinfo{person}{Damian~A Tamburri}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Automated mapping of vulnerability advisories onto their fix commits in open source repositories}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Software Engineering and Methodology}} \bibinfo{volume}{33}, \bibinfo{number}{5} (\bibinfo{year}{2024}), \bibinfo{pages}{1--28}.
+\newblock
+
+
+\bibitem[Iannone et~al\mbox{.}(2022)]%
+        {iannone2022secret}
+\bibfield{author}{\bibinfo{person}{Emanuele Iannone}, \bibinfo{person}{Roberta Guadagni}, \bibinfo{person}{Filomena Ferrucci}, \bibinfo{person}{Andrea De~Lucia}, {and} \bibinfo{person}{Fabio Palomba}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{The secret life of software vulnerabilities: A large-scale empirical study}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Software Engineering}} \bibinfo{volume}{49}, \bibinfo{number}{1} (\bibinfo{year}{2022}), \bibinfo{pages}{44--63}.
+\newblock
+
+
+\bibitem[Kahneman(2011)]%
+        {kahneman2011thinking}
+\bibfield{author}{\bibinfo{person}{Daniel Kahneman}.} \bibinfo{year}{2011}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Thinking, fast and slow}}.
+\newblock \bibinfo{publisher}{macmillan}.
+\newblock
+
+
+\bibitem[Khare et~al\mbox{.}(2023)]%
+        {khare2023understanding}
+\bibfield{author}{\bibinfo{person}{Avishree Khare}, \bibinfo{person}{Saikat Dutta}, \bibinfo{person}{Ziyang Li}, \bibinfo{person}{Alaia Solko-Breslin}, \bibinfo{person}{Rajeev Alur}, {and} \bibinfo{person}{Mayur Naik}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Understanding the Effectiveness of Large Language Models in Detecting Security Vulnerabilities}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2311.16169}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Khattab et~al\mbox{.}(2023)]%
+        {khattab2023dspy}
+\bibfield{author}{\bibinfo{person}{Omar Khattab}, \bibinfo{person}{Arnav Singhvi}, \bibinfo{person}{Paridhi Maheshwari}, \bibinfo{person}{Zhiyuan Zhang}, \bibinfo{person}{Keshav Santhanam}, \bibinfo{person}{Sri Vardhamanan}, \bibinfo{person}{Saiful Haq}, \bibinfo{person}{Ashutosh Sharma}, \bibinfo{person}{Thomas~T Joshi}, \bibinfo{person}{Hanna Moazam}, {et~al\mbox{.}}} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Dspy: Compiling declarative language model calls into self-improving pipelines}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2310.03714}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Klees et~al\mbox{.}(2018)]%
+        {klees2018evaluating}
+\bibfield{author}{\bibinfo{person}{George Klees}, \bibinfo{person}{Andrew Ruef}, \bibinfo{person}{Benji Cooper}, \bibinfo{person}{Shiyi Wei}, {and} \bibinfo{person}{Michael Hicks}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Evaluating fuzz testing}. In \bibinfo{booktitle}{\emph{Proceedings of the 2018 ACM SIGSAC conference on computer and communications security}}. \bibinfo{pages}{2123--2138}.
+\newblock
+
+
+\bibitem[Li et~al\mbox{.}(2024)]%
+        {li2024llm}
+\bibfield{author}{\bibinfo{person}{Ziyang Li}, \bibinfo{person}{Saikat Dutta}, {and} \bibinfo{person}{Mayur Naik}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{LLM-Assisted Static Analysis for Detecting Security Vulnerabilities}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2405.17238}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Liu et~al\mbox{.}(2024)]%
+        {liu2024vuldetectbench}
+\bibfield{author}{\bibinfo{person}{Yu Liu}, \bibinfo{person}{Lang Gao}, \bibinfo{person}{Mingxin Yang}, \bibinfo{person}{Yu Xie}, \bibinfo{person}{Ping Chen}, \bibinfo{person}{Xiaojin Zhang}, {and} \bibinfo{person}{Wei Chen}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{VulDetectBench: Evaluating the Deep Capability of Vulnerability Detection with Large Language Models}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2406.07595}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Man{\`e}s et~al\mbox{.}(2019)]%
+        {manes2019art}
+\bibfield{author}{\bibinfo{person}{Valentin~JM Man{\`e}s}, \bibinfo{person}{HyungSeok Han}, \bibinfo{person}{Choongwoo Han}, \bibinfo{person}{Sang~Kil Cha}, \bibinfo{person}{Manuel Egele}, \bibinfo{person}{Edward~J Schwartz}, {and} \bibinfo{person}{Maverick Woo}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{The art, science, and engineering of fuzzing: A survey}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Software Engineering}} \bibinfo{volume}{47}, \bibinfo{number}{11} (\bibinfo{year}{2019}), \bibinfo{pages}{2312--2331}.
+\newblock
+
+
+\bibitem[Ouyang et~al\mbox{.}(2025)]%
+        {ouyang2025empirical}
+\bibfield{author}{\bibinfo{person}{Shuyin Ouyang}, \bibinfo{person}{Jie~M Zhang}, \bibinfo{person}{Mark Harman}, {and} \bibinfo{person}{Meng Wang}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{An empirical study of the non-determinism of chatgpt in code generation}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Software Engineering and Methodology}} \bibinfo{volume}{34}, \bibinfo{number}{2} (\bibinfo{year}{2025}), \bibinfo{pages}{1--28}.
+\newblock
+
+
+\bibitem[Pereira et~al\mbox{.}(2022)]%
+        {pereira2022software}
+\bibfield{author}{\bibinfo{person}{Jos{\'e}~D'Abruzzo Pereira}, \bibinfo{person}{Jo{\~a}o~Henggeler Antunes}, {and} \bibinfo{person}{Marco Vieira}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{A Software Vulnerability Dataset of Large Open Source C/C++ Projects}. In \bibinfo{booktitle}{\emph{2022 IEEE 27th Pacific Rim International Symposium on Dependable Computing (PRDC)}}. IEEE, \bibinfo{pages}{152--163}.
+\newblock
+
+
+\bibitem[Pereira et~al\mbox{.}(2021)]%
+        {pereira2021machine}
+\bibfield{author}{\bibinfo{person}{Jos{\'e}~D'Abruzzo Pereira}, \bibinfo{person}{Joao~R Campos}, {and} \bibinfo{person}{Marco Vieira}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Machine learning to combine static analysis alerts with software metrics to detect security vulnerabilities: An empirical study}. In \bibinfo{booktitle}{\emph{2021 17th European Dependable Computing Conference (EDCC)}}. IEEE, \bibinfo{pages}{1--8}.
+\newblock
+
+
+\bibitem[Roziere et~al\mbox{.}(2023)]%
+        {roziere2023code}
+\bibfield{author}{\bibinfo{person}{Baptiste Roziere}, \bibinfo{person}{Jonas Gehring}, \bibinfo{person}{Fabian Gloeckle}, \bibinfo{person}{Sten Sootla}, \bibinfo{person}{Itai Gat}, \bibinfo{person}{Xiaoqing~Ellen Tan}, \bibinfo{person}{Yossi Adi}, \bibinfo{person}{Jingyu Liu}, \bibinfo{person}{Tal Remez}, \bibinfo{person}{J{\'e}r{\'e}my Rapin}, {et~al\mbox{.}}} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Code llama: Open foundation models for code}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2308.12950}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Sallou et~al\mbox{.}(2024)]%
+        {sallou2024breaking}
+\bibfield{author}{\bibinfo{person}{June Sallou}, \bibinfo{person}{Thomas Durieux}, {and} \bibinfo{person}{Annibale Panichella}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Breaking the silence: the threats of using llms in software engineering}. In \bibinfo{booktitle}{\emph{Proceedings of the 2024 ACM/IEEE 44th International Conference on Software Engineering: New Ideas and Emerging Results}}. \bibinfo{pages}{102--106}.
+\newblock
+
+
+\bibitem[Siddiq and Santos(2022)]%
+        {siddiq2022securityeval}
+\bibfield{author}{\bibinfo{person}{Mohammed~Latif Siddiq} {and} \bibinfo{person}{Joanna~CS Santos}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{SecurityEval dataset: mining vulnerability examples to evaluate machine learning-based code generation techniques}. In \bibinfo{booktitle}{\emph{Proceedings of the 1st International Workshop on Mining Software Repositories Applications for Privacy and Security}}. \bibinfo{pages}{29--33}.
+\newblock
+
+
+\bibitem[Thomas et~al\mbox{.}(2022)]%
+        {thomas2022dynamic}
+\bibfield{author}{\bibinfo{person}{Sam Thomas}, \bibinfo{person}{Farnoosh Koleini}, {and} \bibinfo{person}{Nasseh Tabrizi}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Dynamic defenses and the transferability of adversarial examples}. In \bibinfo{booktitle}{\emph{2022 IEEE 4th International Conference on Trust, Privacy and Security in Intelligent Systems, and Applications (TPS-ISA)}}. IEEE, \bibinfo{pages}{276--284}.
+\newblock
+
+
+\bibitem[Ullah et~al\mbox{.}(2024)]%
+        {ullah2024llms}
+\bibfield{author}{\bibinfo{person}{Saad Ullah}, \bibinfo{person}{Mingji Han}, \bibinfo{person}{Saurabh Pujar}, \bibinfo{person}{Hammond Pearce}, \bibinfo{person}{Ayse Coskun}, {and} \bibinfo{person}{Gianluca Stringhini}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{LLMs Cannot Reliably Identify and Reason About Security Vulnerabilities (Yet?): A Comprehensive Evaluation, Framework, and Benchmarks}. In \bibinfo{booktitle}{\emph{IEEE Symposium on Security and Privacy}}.
+\newblock
+
+
+\bibitem[Wei et~al\mbox{.}(2022)]%
+        {wei2022chain}
+\bibfield{author}{\bibinfo{person}{Jason Wei}, \bibinfo{person}{Xuezhi Wang}, \bibinfo{person}{Dale Schuurmans}, \bibinfo{person}{Maarten Bosma}, \bibinfo{person}{Fei Xia}, \bibinfo{person}{Ed Chi}, \bibinfo{person}{Quoc~V Le}, \bibinfo{person}{Denny Zhou}, {et~al\mbox{.}}} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Chain-of-thought prompting elicits reasoning in large language models}.
+\newblock \bibinfo{journal}{\emph{Advances in neural information processing systems}}  \bibinfo{volume}{35} (\bibinfo{year}{2022}), \bibinfo{pages}{24824--24837}.
+\newblock
+
+
+\bibitem[Wu et~al\mbox{.}(2023)]%
+        {wu2023effective}
+\bibfield{author}{\bibinfo{person}{Yi Wu}, \bibinfo{person}{Nan Jiang}, \bibinfo{person}{Hung~Viet Pham}, \bibinfo{person}{Thibaud Lutellier}, \bibinfo{person}{Jordan Davis}, \bibinfo{person}{Lin Tan}, \bibinfo{person}{Petr Babkin}, {and} \bibinfo{person}{Sameena Shah}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{How effective are neural networks for fixing security vulnerabilities}. In \bibinfo{booktitle}{\emph{Proceedings of the 32nd ACM SIGSOFT International Symposium on Software Testing and Analysis}}. \bibinfo{pages}{1282--1294}.
+\newblock
+
+
+\bibitem[Xiang et~al\mbox{.}(2025)]%
+        {xiang2025towards}
+\bibfield{author}{\bibinfo{person}{Violet Xiang}, \bibinfo{person}{Charlie Snell}, \bibinfo{person}{Kanishk Gandhi}, \bibinfo{person}{Alon Albalak}, \bibinfo{person}{Anikait Singh}, \bibinfo{person}{Chase Blagden}, \bibinfo{person}{Duy Phung}, \bibinfo{person}{Rafael Rafailov}, \bibinfo{person}{Nathan Lile}, \bibinfo{person}{Dakota Mahan}, {et~al\mbox{.}}} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{Towards System 2 Reasoning in LLMs: Learning How to Think With Meta Chain-of-Though}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2501.04682}} (\bibinfo{year}{2025}).
+\newblock
+
+
+\bibitem[Zhang et~al\mbox{.}(2022)]%
+        {zhang2022automatic}
+\bibfield{author}{\bibinfo{person}{Zhuosheng Zhang}, \bibinfo{person}{Aston Zhang}, \bibinfo{person}{Mu Li}, {and} \bibinfo{person}{Alex Smola}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Automatic chain of thought prompting in large language models}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2210.03493}} (\bibinfo{year}{2022}).
+\newblock
+
+
+\bibitem[Zhou et~al\mbox{.}(2024)]%
+        {zhou2024comparison}
+\bibfield{author}{\bibinfo{person}{Xin Zhou}, \bibinfo{person}{Duc-Manh Tran}, \bibinfo{person}{Thanh Le-Cong}, \bibinfo{person}{Ting Zhang}, \bibinfo{person}{Ivana~Clairine Irsan}, \bibinfo{person}{Joshua Sumarlin}, \bibinfo{person}{Bach Le}, {and} \bibinfo{person}{David Lo}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Comparison of static application security testing tools and large language models for repo-level vulnerability detection}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2407.16235}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Zhou et~al\mbox{.}(2019)]%
+        {zhou2019devign}
+\bibfield{author}{\bibinfo{person}{Yaqin Zhou}, \bibinfo{person}{Shangqing Liu}, \bibinfo{person}{Jingkai Siow}, \bibinfo{person}{Xiaoning Du}, {and} \bibinfo{person}{Yang Liu}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Devign: Effective vulnerability identification by learning comprehensive program semantics via graph neural networks}.
+\newblock \bibinfo{journal}{\emph{Advances in neural information processing systems}}  \bibinfo{volume}{32} (\bibinfo{year}{2019}).
+\newblock
+
+
+\bibitem[Zibaeirad et~al\mbox{.}(2024)]%
+        {zibaeirad2024comprehensive}
+\bibfield{author}{\bibinfo{person}{Arastoo Zibaeirad}, \bibinfo{person}{Farnoosh Koleini}, \bibinfo{person}{Shengping Bi}, \bibinfo{person}{Tao Hou}, {and} \bibinfo{person}{Tao Wang}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{A Comprehensive Survey on the Security of Smart Grid: Challenges, Mitigations, and Future Research Opportunities}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2407.07966}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Zibaeirad and Vieira(2024)]%
+        {zibaeirad2024vulnllmeval}
+\bibfield{author}{\bibinfo{person}{Arastoo Zibaeirad} {and} \bibinfo{person}{Marco Vieira}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{VulnLLMEval: A Framework for Evaluating Large Language Models in Software Vulnerability Detection and Patching}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2409.10756}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\end{thebibliography}
