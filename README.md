@@ -155,9 +155,15 @@ VulnSage implements four different prompting strategies:
   - tqdm, colorlog
   - dspy (for prompt optimization)
 
+## License
+
+- **Code**: This repository's code is licensed under the [MIT License](https://opensource.org/licenses/MIT). You are free to use, modify, and distribute the code with attribution.
+
+- **Dataset**: The dataset provided in `vulnerability_dataset/` is licensed under the [Creative Commons Attribution 4.0 International License (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). You are free to share and adapt it, provided that appropriate credit is given.
+
 ## Citation
 
-If you use VulnSage in your research, please cite:
+If you use this repository or dataset in your work, please cite the following paper:
 
 ```bibtex
 @article{zibaeirad2025reasoning,
@@ -166,4 +172,3 @@ If you use VulnSage in your research, please cite:
   journal={arXiv preprint arXiv:2503.17885},
   year={2025}
 }
-```
